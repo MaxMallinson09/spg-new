@@ -1,0 +1,633 @@
+@import "tailwindcss" source("../");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --pw-bg: linear-gradient(160deg, #3a63e8 0%, #1f3fae 100%);
+  --pw-surface: #ffffff;
+  --pw-surface-muted: #f8f9fc;
+  --pw-border: #e2e5eb;
+  --pw-border-hover: #c7ccd6;
+  --pw-ink: #1a2333;
+  --pw-muted: #6b7385;
+  --pw-primary: #2952e3;
+  --pw-primary-dark: #1f3ec2;
+  --pw-accent: #0f9d78;
+  --pw-danger: #c3323b;
+  --pw-danger-dark: #a9232c;
+  --pw-ring: rgba(41, 82, 227, 0.15);
+
+  color-scheme: light;
+}
+
+:root.dark {
+  --pw-bg: #0a0f1f;
+  --pw-surface: #141a2c;
+  --pw-surface-muted: #1b2338;
+  --pw-border: #2a3350;
+  --pw-border-hover: #3b4568;
+  --pw-ink: #e8ecf7;
+  --pw-muted: #9aa3bd;
+  --pw-primary: #6b89ff;
+  --pw-primary-dark: #8aa1ff;
+  --pw-accent: #34d399;
+  --pw-danger: #c3323b;
+  --pw-danger-dark: #a9232c;
+  --pw-ring: rgba(107, 137, 255, 0.2);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  @apply m-0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Roboto", sans-serif;
+  color: var(--pw-ink);
+  background: var(--pw-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+code {
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+/* Hides content visually while leaving it in the accessibility tree. Used for
+   labels and status messages that only assistive tech needs, and for text that
+   the responsive layout drops -- `display: none` would remove it from the
+   accessibility tree too, so screen reader users would lose it entirely. */
+.pw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Baseline keyboard focus indicator. Every control below overrides the radius
+   to match its own shape, but nothing is ever left without a visible ring. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+/* Motion here is decorative (button press, icon spin, colour fades), so it can
+   be dropped wholesale for anyone who has asked the OS to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.pw-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--pw-bg);
+  transition: background-color 0.2s ease;
+}
+
+.pw-card {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  background: var(--pw-surface);
+  border: 1px solid var(--pw-border);
+  border-radius: 1rem;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 32px -12px rgba(16, 24, 40, 0.12);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.pw-taskbar {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.4rem 0.35rem 0.9rem;
+  background: var(--pw-surface);
+  border: 1px solid var(--pw-border);
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 20px -10px rgba(16, 24, 40, 0.2);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.pw-taskbar__clock {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pw-ink);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.pw-theme-toggle {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 9999px;
+  color: var(--pw-ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.pw-theme-toggle:hover {
+  border-color: var(--pw-border-hover);
+}
+
+.pw-theme-toggle:active {
+  transform: translateY(1px);
+}
+
+.pw-theme-toggle:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+@media (max-width: 420px) {
+  .pw-taskbar {
+    padding: 0.3rem 0.35rem 0.3rem 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .pw-taskbar__clock {
+    font-size: 0.7rem;
+  }
+}
+
+.pw-eyebrow {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pw-primary);
+  text-align: center;
+  margin-bottom: 0.6rem;
+}
+
+.pw-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+  text-align: center;
+  color: var(--pw-ink);
+}
+
+.pw-subtitle {
+  margin: 0 0 1.75rem;
+  text-align: center;
+  font-size: 0.925rem;
+  font-weight: 400;
+  color: var(--pw-muted);
+}
+
+.pw-display {
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.pw-display__text {
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--pw-ink);
+  word-break: break-all;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.pw-display__meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pw-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pw-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.pw-btn {
+  flex: 1;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.925rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.pw-btn:active {
+  transform: translateY(1px);
+}
+
+/* The ring sits outside the button on the card surface, so a single colour
+   reads clearly against both the filled primary button and the ghost one. */
+.pw-btn:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+/* Copy is disabled until the first password exists. Without this it looked
+   identical to an enabled button, so the only clue was that clicking did
+   nothing. */
+.pw-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pw-btn:disabled:active {
+  transform: none;
+}
+
+.pw-btn--ghost:disabled:hover {
+  background: var(--pw-surface);
+  border-color: var(--pw-border);
+}
+
+.pw-btn--primary {
+  background: var(--pw-primary);
+  color: #ffffff;
+}
+
+.pw-btn--primary:hover {
+  background: var(--pw-primary-dark);
+}
+
+.pw-btn--ghost {
+  background: var(--pw-surface);
+  color: var(--pw-ink);
+  border-color: var(--pw-border);
+}
+
+.pw-btn--ghost:hover {
+  border-color: var(--pw-border-hover);
+  background: var(--pw-surface-muted);
+}
+
+.pw-btn__icon {
+  display: inline-block;
+  font-size: 1rem;
+  transition: transform 0.4s ease;
+}
+
+.pw-btn--spin .pw-btn__icon {
+  transform: rotate(360deg);
+}
+
+.pw-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--pw-border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--pw-muted);
+}
+
+.pw-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.pw-checklist li::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: var(--pw-accent);
+  flex-shrink: 0;
+}
+
+@media (max-width: 420px) {
+  .pw-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .pw-checklist {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Signed-in user chip in the taskbar --- */
+
+.pw-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 0.55rem;
+  border-left: 1px solid var(--pw-border);
+}
+
+.pw-user__avatar {
+  flex-shrink: 0;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 9999px;
+  object-fit: cover;
+  border: 1px solid var(--pw-border);
+}
+
+.pw-user__avatar--initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pw-primary);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pw-user__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pw-ink);
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pw-user__logout {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--pw-danger);
+  border: 1px solid var(--pw-danger);
+  border-radius: 9999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pw-user__logout:hover {
+  background: var(--pw-danger-dark);
+  border-color: var(--pw-danger-dark);
+}
+
+.pw-user__logout:focus-visible {
+  outline: 2px solid var(--pw-danger);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+@media (max-width: 560px) {
+  /* Visually hidden rather than `display: none`: the name is the only thing
+     identifying who is signed in, and display:none would drop it from the
+     accessibility tree as well as from the screen. */
+  .pw-user__name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* --- Advanced mode: toggle switch and length slider --- */
+
+.pw-mode {
+  margin: -0.75rem 0 1.25rem;
+}
+
+/* The whole row is the label, so the text is part of the switch's hit area
+   rather than something you have to aim past to reach the track. */
+.pw-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pw-switch:hover {
+  border-color: var(--pw-border-hover);
+}
+
+/* The real checkbox is hidden visually but still focusable and still announced,
+   so keyboard and screen reader users get the native switch behaviour while the
+   track below supplies the looks. */
+.pw-switch__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pw-switch__track {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.6rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: var(--pw-border);
+  transition: background-color 0.2s ease;
+}
+
+.pw-switch__knob {
+  position: absolute;
+  top: 0.175rem;
+  left: 0.175rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.pw-switch__input:checked + .pw-switch__track {
+  background: var(--pw-primary);
+}
+
+.pw-switch__input:checked + .pw-switch__track .pw-switch__knob {
+  transform: translateX(1.1rem);
+}
+
+/* Focus is drawn on the track because the input itself has no visible box. */
+.pw-switch__input:focus-visible + .pw-switch__track {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+.pw-switch__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pw-ink);
+}
+
+.pw-switch__hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--pw-muted);
+}
+
+.pw-length {
+  margin-bottom: 1.25rem;
+}
+
+.pw-length__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.pw-length__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pw-ink);
+}
+
+.pw-length__value {
+  font-size: 0.925rem;
+  font-weight: 700;
+  color: var(--pw-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The native range control is styled from scratch: appearance:none removes the
+   platform look on both the track and, further down, the thumb. */
+.pw-length__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: var(--pw-border);
+  cursor: pointer;
+}
+
+.pw-length__slider:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 4px;
+}
+
+/* The two thumb rules cannot be merged: a selector one engine does not
+   recognise invalidates the whole rule for that engine. */
+.pw-length__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  background: var(--pw-primary);
+  border: 3px solid var(--pw-surface);
+  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.35);
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.pw-length__slider::-moz-range-thumb {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  background: var(--pw-primary);
+  border: 3px solid var(--pw-surface);
+  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.35);
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.pw-length__slider:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+  cursor: grabbing;
+}
+
+.pw-length__slider:active::-moz-range-thumb {
+  transform: scale(1.12);
+  cursor: grabbing;
+}
+
+.pw-length__scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--pw-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A 24-character random string needs to shrink to stay inside the card; the
+   word-based password keeps its larger, more readable size. */
+.pw-display__text--dense {
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
