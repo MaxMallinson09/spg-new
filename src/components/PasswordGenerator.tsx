@@ -44,10 +44,10 @@ const WORDS = [
   'Park', 'Pasta', 'Pen', 'Piano', 'Pink', 'Pixel', 'Pizza', 'Plant',
   'Plate', 'Plum', 'Pond', 'Pool', 'Radio', 'Ramp', 'Rice', 'River',
   'Robot', 'Rock', 'Room', 'Rope', 'Ruby', 'Rug', 'Salad', 'Sand',
-  'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup', 'Spoon', 'Star',
-  'Stone', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast', 'Token',
-  'Town', 'Train', 'Tree', 'Video', 'Watch', 'Web', 'Wire', 'Wool',
-  'Yarn', 'Zip', 'Zone',
+  'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup', 'Star', 'Stone',
+  'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast', 'Token', 'Town',
+  'Train', 'Tree', 'Video', 'Watch', 'Web', 'Wire', 'Wool', 'Yarn',
+  'Zip', 'Zone',
 ]
 
 // Words short enough that any three of them always land inside the length
