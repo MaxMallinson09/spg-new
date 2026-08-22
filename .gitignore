@@ -1,0 +1,28 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Local Netlify state
+.netlify/
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+*.local
+.npmrc
+
+# Credentials and private key material
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+
+# Logs and editor/OS noise
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
