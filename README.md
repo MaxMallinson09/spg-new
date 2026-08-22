@@ -1,12 +1,12 @@
 # Simple Password Generator
 
-A single-page password generator that produces simple, memorable, kid-safe passwords. Every password combines three easy-to-read words, two numbers, and one special character, and always lands between 12 and 16 characters long.
+A single-page password generator that produces simple, memorable, phone-friendly passwords. Every simple-mode password combines three easy-to-dictate words, two numbers, and one special character, and always lands between 12 and 16 characters long.
 
 ## How it works
 
-Click "New password" to generate a fresh password in the format `WordWordWordNN!` (for example `NewtHutKey28$`). Words are pulled from a curated, child-friendly list (animals, food, colors, nature, toys — no scary or inappropriate words). Click "Copy" to copy the current password to your clipboard.
+Click "New password" to generate a fresh password in the format `WordWordWordNN!` (for example `MangoDesk27Plum!`). Words come from a curated 177-word list of neutral, familiar terms chosen to be easy to hear and write down over the phone. The list deliberately avoids animal names, exact homophones, silent-letter spellings, obscure words, awkward or offensive terms, and words that can sound embarrassing on a poor line.
 
-Randomness comes from the browser's cryptographic RNG (`crypto.getRandomValues`), and the word list is sized so that a generated password is one of roughly 18 billion possibilities.
+Randomness comes from the browser's cryptographic RNG (`crypto.getRandomValues`). The current simple-mode keyspace contains 4,756,752,000 valid combinations (about 32.1 bits) after the 12–16 character length rule is applied.
 
 The site is private: every request passes through an Auth0 sign-in check before any page or script is served.
 
@@ -14,7 +14,7 @@ The site is private: every request passes through an Auth0 sign-in check before 
 
 - [TanStack Start](https://tanstack.com/start) (React 19 + TanStack Router)
 - Vite 7
-- Tailwind CSS 4, with custom CSS for the playful visual theme
+- Tailwind CSS 4, with custom CSS for the visual theme
 - Auth0 for sign-in, enforced in a Netlify Edge Function
 - Deployed on Netlify
 
