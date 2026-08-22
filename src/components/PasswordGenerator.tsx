@@ -31,23 +31,21 @@ import UserMenu from './UserMenu'
 const WORDS = [
   'Album', 'Amber', 'Apple', 'Ash', 'Audio', 'Badge', 'Bench', 'Bike',
   'Boat', 'Book', 'Boot', 'Brick', 'Broom', 'Brush', 'Bus', 'Cable',
-  'Cake', 'Card', 'Cave', 'Chair', 'Clay', 'Cliff', 'Clock', 'Cloud',
-  'Coin', 'Cube', 'Cup', 'Desk', 'Door', 'Drop', 'Drum', 'Dune',
-  'Dust', 'Earth', 'Egg', 'Fan', 'Farm', 'Field', 'Film', 'Flag',
-  'Flask', 'Fog', 'Frame', 'Fruit', 'Game', 'Gift', 'Glass', 'Glove',
-  'Gold', 'Grape', 'Grass', 'Green', 'Grid', 'Hat', 'Hill', 'Home',
-  'Honey', 'House', 'Ink', 'Jam', 'Jar', 'Jelly', 'Jet', 'Juice',
-  'Kit', 'Kite', 'Label', 'Lake', 'Lamp', 'Land', 'Laser', 'Lava',
-  'Leaf', 'Lemon', 'Lime', 'Log', 'Mango', 'Map', 'Maple', 'Melon',
-  'Milk', 'Mint', 'Moon', 'Moss', 'Motor', 'Mug', 'Nest', 'Note',
-  'Ocean', 'Olive', 'Onion', 'Oval', 'Oven', 'Paint', 'Panel', 'Paper',
-  'Park', 'Pasta', 'Pen', 'Piano', 'Pink', 'Pixel', 'Pizza', 'Plant',
-  'Plate', 'Plum', 'Pond', 'Pool', 'Radio', 'Ramp', 'Rice', 'River',
-  'Robot', 'Rock', 'Room', 'Rope', 'Ruby', 'Rug', 'Salad', 'Sand',
-  'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup', 'Star', 'Stone',
-  'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast', 'Token', 'Town',
-  'Train', 'Tree', 'Video', 'Watch', 'Web', 'Wire', 'Wool', 'Yarn',
-  'Zip', 'Zone',
+  'Card', 'Cave', 'Chair', 'Clay', 'Cliff', 'Clock', 'Cloud', 'Coin',
+  'Cube', 'Cup', 'Desk', 'Door', 'Drop', 'Drum', 'Dune', 'Dust',
+  'Earth', 'Egg', 'Fan', 'Farm', 'Field', 'Film', 'Flag', 'Flask',
+  'Fog', 'Frame', 'Fruit', 'Game', 'Gift', 'Glass', 'Glove', 'Gold',
+  'Grape', 'Green', 'Grid', 'Hat', 'Hill', 'Home', 'Honey', 'House',
+  'Jar', 'Jet', 'Kit', 'Kite', 'Label', 'Lake', 'Lamp', 'Land',
+  'Laser', 'Lava', 'Leaf', 'Lemon', 'Lime', 'Log', 'Mango', 'Map',
+  'Maple', 'Melon', 'Moon', 'Motor', 'Nest', 'Note', 'Ocean', 'Olive',
+  'Onion', 'Oval', 'Oven', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta',
+  'Pen', 'Piano', 'Pink', 'Pixel', 'Pizza', 'Plant', 'Plate', 'Plum',
+  'Pond', 'Pool', 'Radio', 'Ramp', 'Rice', 'River', 'Robot', 'Rock',
+  'Room', 'Ruby', 'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Sock',
+  'Soup', 'Star', 'Stone', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile',
+  'Toast', 'Token', 'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire',
+  'Wool', 'Zip', 'Zone',
 ]
 
 // Words short enough that any three of them always land inside the length
@@ -377,8 +375,7 @@ export default function PasswordGenerator() {
               ? 'Copied!'
               : copyState === 'failed'
                 ? "Couldn't copy"
-                : 'Copy'}
-          </button>
+                : 'Copy'}          </button>
         </div>
 
         {/* The Copy button relabels itself on success, but a label change on the
