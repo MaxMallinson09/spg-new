@@ -2,8 +2,8 @@ import { useState, useCallback, useEffect } from 'react'
 
 import UserMenu from './UserMenu'
 
-// Child-friendly words only: food, colors, nature, and everyday
-// objects/places. No scary, violent, or otherwise inappropriate words.
+// Child-friendly, neutral words only: food, colors, nature, and everyday
+// objects/places. No scary, violent, offensive, or awkward-to-dictate words.
 //
 // Animal names are deliberately excluded. They used to make up a large slice
 // of the list ('Pig', 'Koala', 'Bunny' and 26 others) and were removed on
@@ -15,6 +15,10 @@ import UserMenu from './UserMenu'
 // ('lamb', 'chalk'), and anything obscure enough to need spelling out
 // ('quail', 'tart', 'mauve'). Simple to say beats clever every time.
 //
+// Keep the list professionally neutral as well: avoid human descriptors,
+// slang/innuendo, terms with obvious social or political baggage, and words
+// that can sound childish or patronising when dictated to another person.
+//
 // The list is kept to words that read the same either side of the Atlantic.
 // American-only terms ('candy', 'truck', 'corn', 'taco', 'bagel', 'wagon',
 // 'cabin') were removed: a word the reader would never use themselves is a
@@ -25,22 +29,23 @@ import UserMenu from './UserMenu'
 // below, and candidates that overflow are thrown away. Adding a longer word
 // therefore shrinks the usable keyspace instead of growing it.
 const WORDS = [
-  'Amber', 'Apple', 'Ball', 'Beach', 'Bean', 'Bell', 'Bike', 'Black',
-  'Blue', 'Boat', 'Book', 'Boot', 'Box', 'Bread', 'Brick', 'Broom',
-  'Brown', 'Brush', 'Bus', 'Cake', 'Card', 'Cave', 'Chair', 'Clay',
-  'Cliff', 'Clock', 'Cloud', 'Coin', 'Cream', 'Cup', 'Doll', 'Door',
-  'Drum', 'Earth', 'Egg', 'Farm', 'Flag', 'Fork', 'Fruit', 'Game',
-  'Gift', 'Glass', 'Glove', 'Gold', 'Grape', 'Grass', 'Green', 'Ham',
-  'Hat', 'Hill', 'Home', 'Honey', 'House', 'Ice', 'Jam', 'Jar',
+  'Amber', 'Apple', 'Ball', 'Beach', 'Bean', 'Bell', 'Bike', 'Blue',
+  'Boat', 'Book', 'Boot', 'Bread', 'Brick', 'Broom', 'Brush', 'Bus',
+  'Cable', 'Cake', 'Card', 'Cave', 'Chair', 'Clay', 'Cliff', 'Clock',
+  'Cloud', 'Coin', 'Cup', 'Desk', 'Door', 'Drum', 'Earth', 'Egg',
+  'Farm', 'Field', 'Flag', 'Fork', 'Frame', 'Fruit', 'Game', 'Gift',
+  'Glass', 'Glove', 'Gold', 'Grape', 'Grass', 'Green', 'Grid', 'Hat',
+  'Hill', 'Home', 'Honey', 'House', 'Ice', 'Ink', 'Jam', 'Jar',
   'Jelly', 'Juice', 'Key', 'Kite', 'Lake', 'Lamp', 'Land', 'Leaf',
-  'Lemon', 'Light', 'Lime', 'Mango', 'Map', 'Maple', 'Mask', 'Melon',
+  'Lemon', 'Light', 'Lime', 'Log', 'Mango', 'Map', 'Maple', 'Melon',
   'Milk', 'Mint', 'Moon', 'Mug', 'Nest', 'Note', 'Ocean', 'Olive',
-  'Onion', 'Paint', 'Paper', 'Park', 'Pasta', 'Peach', 'Piano', 'Pink',
-  'Pizza', 'Plant', 'Plate', 'Pond', 'Red', 'Rice', 'Ring', 'River',
-  'Robot', 'Rock', 'Rope', 'Rose', 'Ruby', 'Salad', 'Sand', 'Ship',
-  'Shoe', 'Sky', 'Slide', 'Snow', 'Sock', 'Soup', 'Spoon', 'Star',
-  'Stone', 'Sugar', 'Swing', 'Table', 'Tent', 'Toast', 'Town', 'Toy',
-  'Train', 'Tree', 'Watch', 'Wave', 'White', 'Yarn', 'Zoo',]
+  'Onion', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta', 'Peach', 'Pen',
+  'Piano', 'Pink', 'Pizza', 'Plant', 'Plate', 'Pond', 'Red', 'Rice',
+  'Ring', 'River', 'Robot', 'Rock', 'Rope', 'Rose', 'Ruby', 'Rug',
+  'Salad', 'Sand', 'Shelf', 'Ship', 'Shoe', 'Sky', 'Slide', 'Snow',
+  'Sock', 'Soup', 'Spoon', 'Star', 'Stone', 'Sugar', 'Table', 'Tent',
+  'Toast', 'Town', 'Train', 'Tree', 'Watch', 'Wave', 'Yarn',
+]
 
 // Words short enough that any three of them always land inside the length
 // budget (4+4+4+3 = 15). Used as the guaranteed-terminating fallback below.
