@@ -375,7 +375,8 @@ export default function PasswordGenerator() {
               ? 'Copied!'
               : copyState === 'failed'
                 ? "Couldn't copy"
-                : 'Copy'}          </button>
+                : 'Copy'}
+          </button>
         </div>
 
         {/* The Copy button relabels itself on success, but a label change on the
