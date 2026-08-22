@@ -1,0 +1,4 @@
+/* Light-mode background override: keep the page clearly blue rather than indigo/purple. */
+:root {
+  --pw-bg: linear-gradient(160deg, #3b82f6 0%, #2563eb 100%);
+}
