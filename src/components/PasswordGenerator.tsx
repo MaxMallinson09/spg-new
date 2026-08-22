@@ -10,10 +10,10 @@ import UserMenu from './UserMenu'
 // request, so do not reintroduce them when topping the list up — reach for
 // food, nature or object words instead.
 //
-// Words are also chosen to survive being read aloud over the phone, so the
-// list avoids homophones ('bear'/'bare', 'pear'/'pair'), silent letters
-// ('lamb', 'chalk'), and anything obscure enough to need spelling out
-// ('quail', 'tart', 'mauve'). Simple to say beats clever every time.
+// Words are chosen to survive being read aloud over the phone. Avoid exact
+// homophones ('ball'/'bawl', 'bean'/'been', 'ice'/'eyes'), silent letters,
+// unusual spellings, and words close enough to profanity to become awkward on
+// a poor line ('beach', 'ship'). Simple to hear and write beats clever.
 //
 // Keep the list professionally neutral as well: avoid human descriptors,
 // slang/innuendo, terms with obvious social or political baggage, and words
@@ -29,22 +29,29 @@ import UserMenu from './UserMenu'
 // below, and candidates that overflow are thrown away. Adding a longer word
 // therefore shrinks the usable keyspace instead of growing it.
 const WORDS = [
-  'Amber', 'Apple', 'Ball', 'Beach', 'Bean', 'Bell', 'Bike', 'Blue',
-  'Boat', 'Book', 'Boot', 'Bread', 'Brick', 'Broom', 'Brush', 'Bus',
-  'Cable', 'Cake', 'Card', 'Cave', 'Chair', 'Clay', 'Cliff', 'Clock',
-  'Cloud', 'Coin', 'Cup', 'Desk', 'Door', 'Drum', 'Earth', 'Egg',
-  'Farm', 'Field', 'Flag', 'Fork', 'Frame', 'Fruit', 'Game', 'Gift',
-  'Glass', 'Glove', 'Gold', 'Grape', 'Grass', 'Green', 'Grid', 'Hat',
-  'Hill', 'Home', 'Honey', 'House', 'Ice', 'Ink', 'Jam', 'Jar',
-  'Jelly', 'Juice', 'Key', 'Kite', 'Lake', 'Lamp', 'Land', 'Leaf',
-  'Lemon', 'Light', 'Lime', 'Log', 'Mango', 'Map', 'Maple', 'Melon',
-  'Milk', 'Mint', 'Moon', 'Mug', 'Nest', 'Note', 'Ocean', 'Olive',
-  'Onion', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta', 'Peach', 'Pen',
-  'Piano', 'Pink', 'Pizza', 'Plant', 'Plate', 'Pond', 'Red', 'Rice',
-  'Ring', 'River', 'Robot', 'Rock', 'Rope', 'Rose', 'Ruby', 'Rug',
-  'Salad', 'Sand', 'Shelf', 'Ship', 'Shoe', 'Sky', 'Slide', 'Snow',
-  'Sock', 'Soup', 'Spoon', 'Star', 'Stone', 'Sugar', 'Table', 'Tent',
-  'Toast', 'Town', 'Train', 'Tree', 'Watch', 'Wave', 'Yarn',
+  'Album', 'Amber', 'Apple', 'Arch', 'Ash', 'Audio', 'Badge', 'Belt',
+  'Bench', 'Bike', 'Bit', 'Boat', 'Book', 'Boot', 'Brick', 'Broom',
+  'Brush', 'Bus', 'Cab', 'Cable', 'Cake', 'Card', 'Cave', 'Chair',
+  'Clamp', 'Clay', 'Cliff', 'Clock', 'Cloud', 'Coin', 'Cork', 'Cube',
+  'Cup', 'Delta', 'Denim', 'Desk', 'Door', 'Drop', 'Drum', 'Dune',
+  'Dust', 'Earth', 'Echo', 'Egg', 'Entry', 'Fan', 'Farm', 'Fern',
+  'Field', 'Film', 'Flag', 'Flask', 'Fog', 'Frame', 'Fruit', 'Game',
+  'Gift', 'Glass', 'Glove', 'Gold', 'Grape', 'Grass', 'Green', 'Grid',
+  'Harp', 'Hat', 'Hill', 'Home', 'Honey', 'Hotel', 'House', 'Hub',
+  'Index', 'Ink', 'Jam', 'Jar', 'Jelly', 'Jet', 'Juice', 'Kit',
+  'Kite', 'Label', 'Lake', 'Lamp', 'Land', 'Laser', 'Lava', 'Leaf',
+  'Lemon', 'Lens', 'Lime', 'Loft', 'Log', 'Logic', 'Mango', 'Map',
+  'Maple', 'Melon', 'Menu', 'Milk', 'Mint', 'Moon', 'Moss', 'Motor',
+  'Mug', 'Nest', 'Note', 'Ocean', 'Olive', 'Onion', 'Oval', 'Oven',
+  'Pad', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta', 'Pen', 'Piano',
+  'Pink', 'Pipe', 'Pixel', 'Pizza', 'Plant', 'Plate', 'Plug', 'Plum',
+  'Pond', 'Pool', 'Radar', 'Radio', 'Ramp', 'Rice', 'River', 'Robot',
+  'Rock', 'Rod', 'Room', 'Rope', 'Ruby', 'Rug', 'Salad', 'Sand',
+  'Shelf', 'Sink', 'Slab', 'Slat', 'Slide', 'Snow', 'Sock', 'Soup',
+  'Spoon', 'Star', 'Step', 'Stone', 'Sugar', 'Table', 'Tag', 'Tent',
+  'Tile', 'Toast', 'Token', 'Tool', 'Top', 'Town', 'Train', 'Tree',
+  'Video', 'Watch', 'Wax', 'Web', 'Wire', 'Wool', 'Yarn', 'Zip',
+  'Zone',
 ]
 
 // Words short enough that any three of them always land inside the length
