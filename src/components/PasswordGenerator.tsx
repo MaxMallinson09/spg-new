@@ -42,7 +42,7 @@ const WORDS = [
   'Piano', 'Pink', 'Pizza', 'Plant', 'Plate', 'Pond',
   'Ramp', 'Rice', 'River', 'Robot', 'Rock', 'Room',
   'Ruby', 'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup',
-  'Star', 'Stone', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast',
+  'Star', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast',
   'Token', 'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire', 'Wool',
   'Zip', 'Zone',
 ]
