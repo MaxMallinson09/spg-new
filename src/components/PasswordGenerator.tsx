@@ -31,7 +31,7 @@ import UserMenu from './UserMenu'
 const WORDS = [
   'Album', 'Amber', 'Apple', 'Audio', 'Badge', 'Bench', 'Bike', 'Boat',
   'Book', 'Boot', 'Brick', 'Broom', 'Brush', 'Bus', 'Cable', 'Card',
-  'Cave', 'Chair', 'Clay', 'Cliff', 'Clock', 'Cloud', 'Coin', 'Cube',
+  'Cave', 'Chair', 'Cloud', 'Coin', 'Cube',
   'Cup', 'Desk', 'Door', 'Drop', 'Drum', 'Dust', 'Earth', 'Egg',
   'Fan', 'Farm', 'Field', 'Film', 'Flag', 'Flask', 'Frame', 'Fruit',
   'Game', 'Gift', 'Glass', 'Glove', 'Gold', 'Green', 'Grid', 'Hat',
