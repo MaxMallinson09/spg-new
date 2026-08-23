@@ -18,9 +18,21 @@ export const Route = createRootRoute({
         title: 'Simple Password Generator',
       },
     ],
-    // Declared explicitly rather than relying on the browser's implicit
-    // /favicon.ico probe, so the icon is requested on the first paint.
     links: [
+      // The existing stylesheet imports Inter from Google Fonts. Preconnecting
+      // avoids making the browser wait for DNS/TLS only after it discovers that
+      // CSS import. This changes no CSP or authentication behaviour.
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      // Declared explicitly rather than relying on the browser's implicit
+      // /favicon.ico probe, so the icon is requested on the first paint.
       {
         rel: 'icon',
         type: 'image/x-icon',
