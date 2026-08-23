@@ -38,7 +38,15 @@ export default function UserMenu() {
   return (
     <div className="pw-user">
       {profile.picture ? (
-        <img className="pw-user__avatar" src={profile.picture} alt="" aria-hidden="true" />
+        <img
+          className="pw-user__avatar"
+          src={profile.picture}
+          alt=""
+          aria-hidden="true"
+          width={26}
+          height={26}
+          decoding="async"
+        />
       ) : (
         <span className="pw-user__avatar pw-user__avatar--initial" aria-hidden="true">
           {label.charAt(0).toUpperCase()}
