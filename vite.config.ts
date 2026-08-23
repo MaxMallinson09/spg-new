@@ -15,7 +15,19 @@ const config = defineConfig({
     }),
     tailwindcss(),
     netlify(),
-    tanstackStart(),
+    tanstackStart({
+      // This app has one static page and no server-side loader data. Generate
+      // the root HTML at build time so Netlify can serve it directly from the
+      // CDN instead of invoking the TanStack Start server handler for `/`.
+      // The Auth0 edge function still runs on `/*`, so this does not weaken the
+      // authentication boundary or expose the page to signed-out visitors.
+      prerender: {
+        enabled: true,
+        autoStaticPathsDiscovery: false,
+        crawlLinks: false,
+        failOnError: true,
+      },
+    }),
     viteReact(),
   ],
 })
