@@ -24,6 +24,7 @@ const LOGIN_PATH = '/auth/login'
 const CALLBACK_PATH = '/auth/callback'
 const LOGOUT_PATH = '/auth/logout'
 const ME_PATH = '/auth/me'
+const SERVER_FN_PATH = '/_serverFn'
 
 const FLOW_COOKIE_MAX_AGE = 600 // 10 minutes to complete a login round trip
 const JWKS_TTL_MS = 10 * 60 * 1000
@@ -138,10 +139,21 @@ async function verifyIdToken(token: string, domain: string, clientId: string): P
   return claims
 }
 
-/** Only same-site absolute paths, so ?returnTo= cannot become an open redirect. */
-function safeReturnPath(value: string | null | undefined): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/'
-  return value
+/**
+ * Only root-relative paths on this exact origin. Parsing with URL is important:
+ * browsers normalize edge cases such as backslashes before following a
+ * Location header, so string-prefix checks alone are not a safe redirect
+ * boundary.
+ */
+function safeReturnPath(value: string | null | undefined, origin: string): string {
+  if (!value || !value.startsWith('/')) return '/'
+  try {
+    const target = new URL(value, origin)
+    if (target.origin !== origin) return '/'
+    return `${target.pathname}${target.search}${target.hash}`
+  } catch {
+    return '/'
+  }
 }
 
 function clearFlowCookies(context: Context, secure: boolean) {
@@ -169,11 +181,22 @@ export default async (request: Request, context: Context) => {
 
   const redirectUri = `${url.origin}${CALLBACK_PATH}`
 
+  // This app does not define TanStack server functions. Keep the framework's
+  // unused server-function deserializer unreachable so a vulnerable transitive
+  // package cannot be exercised over HTTP. If server functions are added in
+  // future, upgrade the TanStack Start stack before removing this block.
+  if (url.pathname === SERVER_FN_PATH || url.pathname.startsWith(`${SERVER_FN_PATH}/`)) {
+    return new Response('Not found', {
+      status: 404,
+      headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
+    })
+  }
+
   // ---- Start a login ----
   if (url.pathname === LOGIN_PATH) {
     const verifier = randomToken()
     const state = randomToken(16)
-    const returnTo = safeReturnPath(url.searchParams.get('returnTo'))
+    const returnTo = safeReturnPath(url.searchParams.get('returnTo'), url.origin)
 
     const cookieOptions = { path: '/', httpOnly: true, secure, sameSite: 'Lax' as const, maxAge: FLOW_COOKIE_MAX_AGE }
     context.cookies.set({ name: VERIFIER_COOKIE, value: verifier, ...cookieOptions })
@@ -245,7 +268,7 @@ export default async (request: Request, context: Context) => {
       })
     }
 
-    const returnTo = safeReturnPath(context.cookies.get(RETURN_COOKIE))
+    const returnTo = safeReturnPath(context.cookies.get(RETURN_COOKIE), url.origin)
     clearFlowCookies(context, secure)
     context.cookies.set({
       name: SESSION_COOKIE,
