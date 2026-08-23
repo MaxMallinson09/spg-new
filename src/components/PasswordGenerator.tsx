@@ -40,7 +40,7 @@ const WORDS = [
   'Mango', 'Map', 'Moon', 'Motor', 'Nest', 'Note', 'Ocean', 'Olive',
   'Onion', 'Oven', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta', 'Pen',
   'Piano', 'Pink', 'Pizza', 'Plant', 'Plate', 'Pond',
-  'Pool', 'Radio', 'Ramp', 'Rice', 'River', 'Robot', 'Rock', 'Room',
+  'Ramp', 'Rice', 'River', 'Robot', 'Rock', 'Room',
   'Ruby', 'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup',
   'Star', 'Stone', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast',
   'Token', 'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire', 'Wool',
