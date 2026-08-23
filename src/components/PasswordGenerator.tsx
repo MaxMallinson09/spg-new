@@ -43,7 +43,8 @@ const WORDS = [
   'Ramp', 'Rice', 'River', 'Robot', 'Rock', 'Room',
   'Ruby', 'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup',
   'Star', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast',
-  'Token', 'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire', 'Wool',
+  'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire',
+``
   'Zip', 'Zone',
 ]
 
