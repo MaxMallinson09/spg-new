@@ -37,7 +37,7 @@ const WORDS = [
   'Game', 'Gift', 'Glass', 'Glove', 'Gold', 'Green', 'Grid', 'Hat',
   'Hill', 'Home', 'Honey', 'House', 'Jar', 'Jet', 'Kit',
   'Lake', 'Lamp', 'Land', 'Laser', 'Lava', 'Leaf', 'Lemon', 'Log',
-  'Mango', 'Map', 'Moon', 'Motor', 'Nest', 'Note', 'Ocean', 'Olive',
+  'Mango', 'Map', 'Moon', 'Motor', 'Note', 'Ocean',
   'Onion', 'Oven', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta', 'Pen',
   'Piano', 'Pink', 'Pizza', 'Plant', 'Plate', 'Pond',
   'Ramp', 'Rice', 'River', 'Robot', 'Rock', 'Room',
