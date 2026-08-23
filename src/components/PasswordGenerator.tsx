@@ -33,7 +33,7 @@ const WORDS = [
   'Book', 'Boot', 'Brick', 'Broom', 'Brush', 'Bus', 'Cable', 'Card',
   'Cave', 'Chair', 'Cloud', 'Coin', 'Cube',
   'Cup', 'Desk', 'Door', 'Drop', 'Drum', 'Dust', 'Earth', 'Egg',
-  'Fan', 'Farm', 'Field', 'Film', 'Flag', 'Flask', 'Frame', 'Fruit',
+  'Fan', 'Farm', 'Field', 'Film', 'Flag', 'Fruit',
   'Game', 'Gift', 'Glass', 'Glove', 'Gold', 'Green', 'Grid', 'Hat',
   'Hill', 'Home', 'Honey', 'House', 'Jar', 'Jet', 'Kit',
   'Lake', 'Lamp', 'Land', 'Laser', 'Lava', 'Leaf', 'Lemon', 'Log',
