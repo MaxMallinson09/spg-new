@@ -44,7 +44,6 @@ const WORDS = [
   'Ruby', 'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup',
   'Star', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast',
   'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire',
-``
   'Zip', 'Zone',
 ]
 
