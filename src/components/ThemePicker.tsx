@@ -82,6 +82,19 @@ function persist(key: string, value: string) {
   }
 }
 
+function ThemeOptions() {
+  return (
+    <>
+      <option value="system">System (light/dark)</option>
+      {THEMES.map((item) => (
+        <option key={item.id} value={item.id}>
+          {item.label}
+        </option>
+      ))}
+    </>
+  )
+}
+
 export default function ThemePicker() {
   // Deterministic defaults keep SSR and hydration in sync. Saved preferences
   // are restored after mount and then applied directly to the root element.
@@ -154,19 +167,16 @@ export default function ThemePicker() {
     persist(MOTION_STORAGE_KEY, next)
   }
 
-  const resetPreferences = () => {
-    setTheme('system')
+  const resetAccessibility = () => {
     setFontSize('normal')
     setContrast('system')
     setMotion('system')
 
-    applyTheme('system')
     applyFontSize('normal')
     applyContrast('system')
     applyMotion('system')
 
     try {
-      window.localStorage.removeItem(THEME_STORAGE_KEY)
       window.localStorage.removeItem(FONT_SIZE_STORAGE_KEY)
       window.localStorage.removeItem(CONTRAST_STORAGE_KEY)
       window.localStorage.removeItem(MOTION_STORAGE_KEY)
@@ -176,82 +186,101 @@ export default function ThemePicker() {
   }
 
   return (
-    <details className="pw-accessibility">
-      <summary className="pw-accessibility__summary">Accessibility</summary>
-      <div
-        className="pw-accessibility__panel"
-        role="group"
-        aria-label="Accessibility and display settings"
-      >
-        <div className="pw-accessibility__heading">
-          <strong>Accessibility &amp; display</strong>
-          <span>Saved on this device</span>
-        </div>
-
-        <label className="pw-accessibility__setting" htmlFor="pw-theme">
-          <span>Theme</span>
-          <select
-            id="pw-theme"
-            value={theme}
-            onChange={(event) => selectTheme(event.target.value as ThemeChoice)}
-          >
-            <option value="system">System (light/dark)</option>
-            {THEMES.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="pw-accessibility__setting" htmlFor="pw-font-size">
-          <span>Text size</span>
-          <select
-            id="pw-font-size"
-            value={fontSize}
-            onChange={(event) => selectFontSize(event.target.value as FontSize)}
-          >
-            <option value="normal">Normal</option>
-            <option value="large">Large</option>
-            <option value="extra-large">Extra large</option>
-          </select>
-        </label>
-
-        <label className="pw-accessibility__setting" htmlFor="pw-contrast">
-          <span>Contrast</span>
-          <select
-            id="pw-contrast"
-            value={contrast}
-            onChange={(event) =>
-              selectContrast(event.target.value as ContrastPreference)
-            }
-          >
-            <option value="system">Device setting</option>
-            <option value="standard">Standard</option>
-            <option value="high">High contrast</option>
-          </select>
-        </label>
-
-        <label className="pw-accessibility__setting" htmlFor="pw-motion">
-          <span>Motion</span>
-          <select
-            id="pw-motion"
-            value={motion}
-            onChange={(event) => selectMotion(event.target.value as MotionPreference)}
-          >
-            <option value="system">Device setting</option>
-            <option value="reduced">Reduce motion</option>
-          </select>
-        </label>
-
-        <button
-          type="button"
-          className="pw-accessibility__reset"
-          onClick={resetPreferences}
+    <>
+      {/* Desktop/tablet keeps appearance separate from accessibility. On small
+          screens CSS hides this control and exposes the theme row inside the
+          combined menu below instead, avoiding a crowded taskbar. */}
+      <label className="pw-theme-standalone" htmlFor="pw-theme-desktop">
+        <span className="pw-theme-standalone__label">Theme</span>
+        <select
+          id="pw-theme-desktop"
+          className="pw-theme-standalone__select"
+          value={theme}
+          onChange={(event) => selectTheme(event.target.value as ThemeChoice)}
+          aria-label="Theme"
         >
-          Reset accessibility settings
-        </button>
-      </div>
-    </details>
+          <ThemeOptions />
+        </select>
+      </label>
+
+      <details className="pw-accessibility">
+        <summary className="pw-accessibility__summary">
+          <span className="pw-accessibility__summary-desktop">Accessibility</span>
+          <span className="pw-accessibility__summary-mobile">Theme &amp; accessibility</span>
+        </summary>
+        <div
+          className="pw-accessibility__panel"
+          role="group"
+          aria-label="Accessibility and display settings"
+        >
+          <div className="pw-accessibility__heading">
+            <strong>Accessibility &amp; display</strong>
+            <span>Saved on this device</span>
+          </div>
+
+          <label
+            className="pw-accessibility__setting pw-accessibility__theme-mobile"
+            htmlFor="pw-theme-mobile"
+          >
+            <span>Theme</span>
+            <select
+              id="pw-theme-mobile"
+              value={theme}
+              onChange={(event) => selectTheme(event.target.value as ThemeChoice)}
+            >
+              <ThemeOptions />
+            </select>
+          </label>
+
+          <label className="pw-accessibility__setting" htmlFor="pw-font-size">
+            <span>Text size</span>
+            <select
+              id="pw-font-size"
+              value={fontSize}
+              onChange={(event) => selectFontSize(event.target.value as FontSize)}
+            >
+              <option value="normal">Normal</option>
+              <option value="large">Large</option>
+              <option value="extra-large">Extra large</option>
+            </select>
+          </label>
+
+          <label className="pw-accessibility__setting" htmlFor="pw-contrast">
+            <span>Contrast</span>
+            <select
+              id="pw-contrast"
+              value={contrast}
+              onChange={(event) =>
+                selectContrast(event.target.value as ContrastPreference)
+              }
+            >
+              <option value="system">Device setting</option>
+              <option value="standard">Standard</option>
+              <option value="high">High contrast</option>
+            </select>
+          </label>
+
+          <label className="pw-accessibility__setting" htmlFor="pw-motion">
+            <span>Motion</span>
+            <select
+              id="pw-motion"
+              value={motion}
+              onChange={(event) => selectMotion(event.target.value as MotionPreference)}
+            >
+              <option value="system">Device setting</option>
+              <option value="reduced">Reduce motion</option>
+            </select>
+          </label>
+
+          <button
+            type="button"
+            className="pw-accessibility__reset"
+            onClick={resetAccessibility}
+          >
+            Reset accessibility settings
+          </button>
+        </div>
+      </details>
+    </>
   )
 }
