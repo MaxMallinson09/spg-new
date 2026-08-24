@@ -37,9 +37,11 @@
 
 /* Some browsers draw their own inner focus ring on native selects. Replacing
    that with one deliberate ring avoids the doubled oval seen around the theme
-   control while keeping keyboard focus very obvious. */
+   control while keeping keyboard focus very obvious. A transparent outline is
+   retained so manual/forced high-contrast modes can recolour it. */
 .pw-theme-standalone__select:focus-visible {
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 0;
   border-color: var(--pw-primary);
   box-shadow: 0 0 0 2px var(--pw-primary);
 }
@@ -109,7 +111,8 @@
 }
 
 .pw-accessibility__summary:focus-visible {
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 0;
   border-color: var(--pw-primary);
   box-shadow: 0 0 0 2px var(--pw-primary);
 }
@@ -185,11 +188,14 @@
 }
 
 @media (forced-colors: active) {
-  .pw-theme-standalone__select,
-  .pw-accessibility__summary {
+  .pw-theme-standalone__select:focus-visible,
+  .pw-accessibility__summary:focus-visible {
     box-shadow: none;
     outline: 2px solid Highlight;
     outline-offset: 2px;
+  }
+
+  .pw-theme-standalone__select {
     forced-color-adjust: auto;
   }
 }
