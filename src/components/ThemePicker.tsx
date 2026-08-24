@@ -1,25 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const THEMES = [
-  { id: 'original', label: 'Original' },
-  { id: 'dark', label: 'Dark' },
-  { id: 'ocean', label: 'Ocean' },
-  { id: 'spice', label: 'Spice' },
-  { id: 'forest', label: 'Forest' },
-  { id: 'rose', label: 'Rose' },
-  { id: 'lavender', label: 'Lavender' },
-  { id: 'light', label: 'Light' },
-  { id: 'mocha', label: 'Mocha' },
-  { id: 'neon', label: 'Neon' },
-  { id: 'midnight', label: 'Midnight' },
-  { id: 'gold', label: 'Gold' },
+  { id: 'original', label: 'Light theme', swatch: '#2563eb' },
+  { id: 'dark', label: 'Dark', swatch: '#050505' },
+  { id: 'ocean', label: 'Ocean', swatch: '#00695c' },
+  { id: 'spice', label: 'Spice', swatch: '#bf360c' },
+  { id: 'forest', label: 'Forest', swatch: '#1b5e20' },
+  { id: 'rose', label: 'Rose', swatch: '#c2185b' },
+  { id: 'lavender', label: 'Lavender', swatch: '#6a1b9a' },
+  { id: 'light', label: 'Slate', swatch: '#78909c' },
+  { id: 'mocha', label: 'Mocha', swatch: '#4e342e' },
+  { id: 'neon', label: 'Neon', swatch: '#00ff9f' },
+  { id: 'midnight', label: 'Midnight', swatch: '#4d9fff' },
+  { id: 'gold', label: 'Gold', swatch: '#d4a017' },
 ] as const
 
 type ThemeName = (typeof THEMES)[number]['id']
-type ThemeChoice = ThemeName | 'system'
 type FontSize = 'normal' | 'large' | 'extra-large'
-type ContrastPreference = 'system' | 'standard' | 'high'
-type MotionPreference = 'system' | 'reduced'
+type ContrastPreference = 'standard' | 'high'
+type MotionPreference = 'standard' | 'reduced'
 
 const THEME_STORAGE_KEY = 'spg-theme'
 const FONT_SIZE_STORAGE_KEY = 'spg-font-size'
@@ -30,32 +29,21 @@ function isThemeName(value: string | null): value is ThemeName {
   return THEMES.some((theme) => theme.id === value)
 }
 
-function isThemeChoice(value: string | null): value is ThemeChoice {
-  return value === 'system' || isThemeName(value)
-}
-
 function isFontSize(value: string | null): value is FontSize {
   return value === 'normal' || value === 'large' || value === 'extra-large'
 }
 
 function isContrastPreference(value: string | null): value is ContrastPreference {
-  return value === 'system' || value === 'standard' || value === 'high'
+  return value === 'standard' || value === 'high'
 }
 
 function isMotionPreference(value: string | null): value is MotionPreference {
-  return value === 'system' || value === 'reduced'
+  return value === 'standard' || value === 'reduced'
 }
 
-function applyTheme(theme: ThemeChoice) {
+function applyTheme(theme: ThemeName) {
   const root = document.documentElement
-  const resolvedTheme: ThemeName =
-    theme === 'system'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'original'
-      : theme
-
-  root.dataset.theme = resolvedTheme
+  root.dataset.theme = theme
   // Theme presets replace the old binary class toggle. Clearing it avoids an
   // older :root.dark rule fighting the selected preset if a cached page still
   // has the class from a previous session.
@@ -82,32 +70,54 @@ function persist(key: string, value: string) {
   }
 }
 
-function ThemeOptions() {
+function ThemeButtons({
+  theme,
+  onSelect,
+}: {
+  theme: ThemeName
+  onSelect: (theme: ThemeName) => void
+}) {
   return (
-    <>
-      <option value="system">System (light/dark)</option>
+    <div className="pw-theme-grid" role="group" aria-label="Choose a theme colour">
       {THEMES.map((item) => (
-        <option key={item.id} value={item.id}>
-          {item.label}
-        </option>
+        <button
+          key={item.id}
+          type="button"
+          className="pw-theme-choice"
+          aria-pressed={theme === item.id}
+          onClick={() => onSelect(item.id)}
+        >
+          <span
+            className="pw-theme-choice__swatch"
+            style={{ backgroundColor: item.swatch }}
+            aria-hidden="true"
+          />
+          <span className="pw-theme-choice__label">{item.label}</span>
+          {theme === item.id && (
+            <span className="pw-theme-choice__check" aria-hidden="true">
+              ✓
+            </span>
+          )}
+        </button>
       ))}
-    </>
+    </div>
   )
 }
 
 export default function ThemePicker() {
   // Deterministic defaults keep SSR and hydration in sync. Saved preferences
   // are restored after mount and then applied directly to the root element.
-  const [theme, setTheme] = useState<ThemeChoice>('system')
+  const [theme, setTheme] = useState<ThemeName>('original')
   const [fontSize, setFontSize] = useState<FontSize>('normal')
-  const [contrast, setContrast] = useState<ContrastPreference>('system')
-  const [motion, setMotion] = useState<MotionPreference>('system')
+  const [contrast, setContrast] = useState<ContrastPreference>('standard')
+  const [motion, setMotion] = useState<MotionPreference>('standard')
+  const themeMenuRef = useRef<HTMLDetailsElement>(null)
 
   useEffect(() => {
-    let nextTheme: ThemeChoice = 'system'
+    let nextTheme: ThemeName = 'original'
     let nextFontSize: FontSize = 'normal'
-    let nextContrast: ContrastPreference = 'system'
-    let nextMotion: MotionPreference = 'system'
+    let nextContrast: ContrastPreference = 'standard'
+    let nextMotion: MotionPreference = 'standard'
 
     try {
       const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
@@ -115,7 +125,9 @@ export default function ThemePicker() {
       const savedContrast = window.localStorage.getItem(CONTRAST_STORAGE_KEY)
       const savedMotion = window.localStorage.getItem(MOTION_STORAGE_KEY)
 
-      if (isThemeChoice(savedTheme)) nextTheme = savedTheme
+      // Older releases stored "system" for these settings. It is deliberately
+      // ignored here and migrates naturally to the new explicit defaults.
+      if (isThemeName(savedTheme)) nextTheme = savedTheme
       if (isFontSize(savedFontSize)) nextFontSize = savedFontSize
       if (isContrastPreference(savedContrast)) nextContrast = savedContrast
       if (isMotionPreference(savedMotion)) nextMotion = savedMotion
@@ -134,19 +146,11 @@ export default function ThemePicker() {
     applyMotion(nextMotion)
   }, [])
 
-  useEffect(() => {
-    if (theme !== 'system') return
-
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const syncTheme = () => applyTheme('system')
-    media.addEventListener('change', syncTheme)
-    return () => media.removeEventListener('change', syncTheme)
-  }, [theme])
-
-  const selectTheme = (next: ThemeChoice) => {
+  const selectTheme = (next: ThemeName) => {
     setTheme(next)
     applyTheme(next)
     persist(THEME_STORAGE_KEY, next)
+    if (themeMenuRef.current) themeMenuRef.current.open = false
   }
 
   const selectFontSize = (next: FontSize) => {
@@ -169,12 +173,12 @@ export default function ThemePicker() {
 
   const resetAccessibility = () => {
     setFontSize('normal')
-    setContrast('system')
-    setMotion('system')
+    setContrast('standard')
+    setMotion('standard')
 
     applyFontSize('normal')
-    applyContrast('system')
-    applyMotion('system')
+    applyContrast('standard')
+    applyMotion('standard')
 
     try {
       window.localStorage.removeItem(FONT_SIZE_STORAGE_KEY)
@@ -185,52 +189,50 @@ export default function ThemePicker() {
     }
   }
 
+  const selectedTheme = THEMES.find((item) => item.id === theme) ?? THEMES[0]
+
   return (
     <>
-      {/* Desktop/tablet keeps appearance separate from accessibility. On small
-          screens CSS hides this control and exposes the theme row inside the
-          combined menu below instead, avoiding a crowded taskbar. */}
-      <label className="pw-theme-standalone" htmlFor="pw-theme-desktop">
-        <span className="pw-theme-standalone__label">Theme</span>
-        <select
-          id="pw-theme-desktop"
-          className="pw-theme-standalone__select"
-          value={theme}
-          onChange={(event) => selectTheme(event.target.value as ThemeChoice)}
-          aria-label="Theme"
-        >
-          <ThemeOptions />
-        </select>
-      </label>
+      {/* Theme is a compact button/menu on desktop. On mobile this entire
+          control is hidden and the same colour choices move into Settings. */}
+      <details className="pw-theme-menu" ref={themeMenuRef}>
+        <summary className="pw-theme-menu__summary">
+          <span>Theme</span>
+          <span
+            className="pw-theme-menu__swatch"
+            style={{ backgroundColor: selectedTheme.swatch }}
+            aria-hidden="true"
+          />
+          <span className="pw-sr-only">{selectedTheme.label} selected</span>
+        </summary>
+        <div className="pw-theme-menu__panel">
+          <div className="pw-theme-menu__heading">
+            <strong>Choose a theme</strong>
+            <span>{selectedTheme.label} is selected</span>
+          </div>
+          <ThemeButtons theme={theme} onSelect={selectTheme} />
+        </div>
+      </details>
 
       <details className="pw-accessibility">
         <summary className="pw-accessibility__summary">
           <span className="pw-accessibility__summary-desktop">Accessibility</span>
-          <span className="pw-accessibility__summary-mobile">Theme &amp; accessibility</span>
+          <span className="pw-accessibility__summary-mobile">Settings</span>
         </summary>
         <div
           className="pw-accessibility__panel"
           role="group"
-          aria-label="Accessibility and display settings"
+          aria-label="Accessibility settings"
         >
           <div className="pw-accessibility__heading">
-            <strong>Accessibility &amp; display</strong>
+            <strong>Accessibility</strong>
             <span>Saved on this device</span>
           </div>
 
-          <label
-            className="pw-accessibility__setting pw-accessibility__theme-mobile"
-            htmlFor="pw-theme-mobile"
-          >
-            <span>Theme</span>
-            <select
-              id="pw-theme-mobile"
-              value={theme}
-              onChange={(event) => selectTheme(event.target.value as ThemeChoice)}
-            >
-              <ThemeOptions />
-            </select>
-          </label>
+          <div className="pw-accessibility__theme-mobile">
+            <span className="pw-accessibility__theme-title">Theme</span>
+            <ThemeButtons theme={theme} onSelect={selectTheme} />
+          </div>
 
           <label className="pw-accessibility__setting" htmlFor="pw-font-size">
             <span>Text size</span>
@@ -254,7 +256,6 @@ export default function ThemePicker() {
                 selectContrast(event.target.value as ContrastPreference)
               }
             >
-              <option value="system">Device setting</option>
               <option value="standard">Standard</option>
               <option value="high">High contrast</option>
             </select>
@@ -267,7 +268,7 @@ export default function ThemePicker() {
               value={motion}
               onChange={(event) => selectMotion(event.target.value as MotionPreference)}
             >
-              <option value="system">Device setting</option>
+              <option value="standard">Standard</option>
               <option value="reduced">Reduce motion</option>
             </select>
           </label>
