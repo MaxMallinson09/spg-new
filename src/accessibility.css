@@ -1,0 +1,325 @@
+/* User-controlled accessibility and display preferences.
+   These rules load after the theme presets so accessibility choices can
+   deliberately take precedence without changing password generation. */
+
+:root[data-font-size='normal'] {
+  font-size: 100%;
+}
+
+:root[data-font-size='large'] {
+  font-size: 112.5%;
+}
+
+:root[data-font-size='extra-large'] {
+  font-size: 125%;
+}
+
+/* Manual reduced-motion mode. The base stylesheet already respects the OS
+   prefers-reduced-motion setting; this adds an explicit in-app override. */
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* High contrast intentionally trades theme colour fidelity for legibility. */
+:root[data-contrast='high'] {
+  --pw-bg: #ffffff;
+  --pw-surface: #ffffff;
+  --pw-surface-muted: #f2f2f2;
+  --pw-border: #000000;
+  --pw-border-hover: #000000;
+  --pw-ink: #000000;
+  --pw-muted: #1a1a1a;
+  --pw-primary: #0037a6;
+  --pw-primary-dark: #001f66;
+  --pw-accent: #006b3c;
+  --pw-danger: #9f001d;
+  --pw-danger-dark: #700014;
+  --pw-ring: rgba(0, 0, 0, 0.35);
+  --pw-heading: #000000;
+  --pw-password-bg: #ffffff;
+  --pw-password-color: #000000;
+  --pw-password-meta: #000000;
+  --pw-password-border: #000000;
+  --pw-primary-contrast: #ffffff;
+  --pw-taskbar-bg: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-contrast='high'][data-theme='dark'],
+:root[data-contrast='high'][data-theme='neon'],
+:root[data-contrast='high'][data-theme='midnight'] {
+  --pw-bg: #000000;
+  --pw-surface: #000000;
+  --pw-surface-muted: #111111;
+  --pw-border: #ffffff;
+  --pw-border-hover: #ffffff;
+  --pw-ink: #ffffff;
+  --pw-muted: #f0f0f0;
+  --pw-primary: #9dcbff;
+  --pw-primary-dark: #cbe3ff;
+  --pw-accent: #79ffc0;
+  --pw-danger: #ff9aaa;
+  --pw-danger-dark: #ffc2cc;
+  --pw-ring: rgba(255, 255, 255, 0.45);
+  --pw-heading: #ffffff;
+  --pw-password-bg: #000000;
+  --pw-password-color: #ffffff;
+  --pw-password-meta: #f0f0f0;
+  --pw-password-border: #ffffff;
+  --pw-primary-contrast: #000000;
+  --pw-taskbar-bg: #000000;
+  color-scheme: dark;
+}
+
+/* When the preference is left on "Device setting", honour browsers that expose
+   prefers-contrast. Browsers without it simply keep the selected theme. */
+@media (prefers-contrast: more) {
+  :root[data-contrast='system'] {
+    --pw-bg: #ffffff;
+    --pw-surface: #ffffff;
+    --pw-surface-muted: #f2f2f2;
+    --pw-border: #000000;
+    --pw-border-hover: #000000;
+    --pw-ink: #000000;
+    --pw-muted: #1a1a1a;
+    --pw-primary: #0037a6;
+    --pw-primary-dark: #001f66;
+    --pw-accent: #006b3c;
+    --pw-danger: #9f001d;
+    --pw-danger-dark: #700014;
+    --pw-ring: rgba(0, 0, 0, 0.35);
+    --pw-heading: #000000;
+    --pw-password-bg: #ffffff;
+    --pw-password-color: #000000;
+    --pw-password-meta: #000000;
+    --pw-password-border: #000000;
+    --pw-primary-contrast: #ffffff;
+    --pw-taskbar-bg: #ffffff;
+    color-scheme: light;
+  }
+
+  :root[data-contrast='system'][data-theme='dark'],
+  :root[data-contrast='system'][data-theme='neon'],
+  :root[data-contrast='system'][data-theme='midnight'] {
+    --pw-bg: #000000;
+    --pw-surface: #000000;
+    --pw-surface-muted: #111111;
+    --pw-border: #ffffff;
+    --pw-border-hover: #ffffff;
+    --pw-ink: #ffffff;
+    --pw-muted: #f0f0f0;
+    --pw-primary: #9dcbff;
+    --pw-primary-dark: #cbe3ff;
+    --pw-accent: #79ffc0;
+    --pw-danger: #ff9aaa;
+    --pw-danger-dark: #ffc2cc;
+    --pw-ring: rgba(255, 255, 255, 0.45);
+    --pw-heading: #ffffff;
+    --pw-password-bg: #000000;
+    --pw-password-color: #ffffff;
+    --pw-password-meta: #f0f0f0;
+    --pw-password-border: #ffffff;
+    --pw-primary-contrast: #000000;
+    --pw-taskbar-bg: #000000;
+    color-scheme: dark;
+  }
+}
+
+:root[data-contrast='high'] :focus-visible {
+  outline-color: var(--pw-ink) !important;
+  outline-width: 3px !important;
+}
+
+/* The taskbar now exposes one compact accessibility menu instead of a bare
+   theme select, keeping the controls discoverable without crowding the card. */
+.pw-accessibility {
+  position: relative;
+}
+
+.pw-accessibility__summary {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.75rem;
+  color: var(--pw-ink);
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pw-accessibility__summary::-webkit-details-marker {
+  display: none;
+}
+
+.pw-accessibility__summary::after {
+  content: '▾';
+  margin-left: 0.4rem;
+  font-size: 0.75em;
+  transform-origin: center;
+  transition: transform 0.15s ease;
+}
+
+.pw-accessibility[open] .pw-accessibility__summary::after {
+  transform: rotate(180deg);
+}
+
+.pw-accessibility__summary:hover {
+  border-color: var(--pw-border-hover);
+}
+
+.pw-accessibility__summary:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+.pw-accessibility__panel {
+  position: fixed;
+  top: 5rem;
+  right: 1.5rem;
+  z-index: 30;
+  width: min(20rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+  padding: 1rem;
+  color: var(--pw-ink);
+  background: var(--pw-surface);
+  border: 1px solid var(--pw-border);
+  border-radius: 0.9rem;
+  box-shadow: 0 18px 40px -18px rgba(16, 24, 40, 0.45);
+}
+
+.pw-accessibility__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.9rem;
+}
+
+.pw-accessibility__heading strong {
+  font-size: 0.95rem;
+}
+
+.pw-accessibility__heading span {
+  color: var(--pw-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.pw-accessibility__setting {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--pw-border);
+  color: var(--pw-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.pw-accessibility__setting select {
+  min-height: 2.75rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  color: var(--pw-ink);
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 0.55rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pw-accessibility__setting select:hover {
+  border-color: var(--pw-border-hover);
+}
+
+.pw-accessibility__setting select:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+.pw-accessibility__reset {
+  min-height: 2.75rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  color: var(--pw-ink);
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 0.6rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pw-accessibility__reset:hover {
+  border-color: var(--pw-border-hover);
+}
+
+/* Larger pointer targets for the generator's primary actions and session
+   control, while preserving their existing visual styling. */
+.pw-btn,
+.pw-user__logout {
+  min-height: 2.75rem;
+}
+
+.pw-user__logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 560px) {
+  .pw-taskbar__clock {
+    display: none;
+  }
+
+  .pw-accessibility__panel {
+    top: 4.75rem;
+    right: 0.75rem;
+    width: calc(100vw - 1.5rem);
+    max-height: calc(100vh - 5.5rem);
+  }
+}
+
+@media (max-width: 360px) {
+  .pw-accessibility__summary {
+    padding-inline: 0.6rem;
+  }
+
+  .pw-accessibility__setting {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
+/* Let Windows High Contrast / forced-colours mode replace decorative colours
+   rather than fighting the user's system palette. */
+@media (forced-colors: active) {
+  .pw-card,
+  .pw-taskbar,
+  .pw-accessibility__panel,
+  .pw-accessibility__summary,
+  .pw-accessibility__setting select,
+  .pw-accessibility__reset,
+  .pw-btn,
+  .pw-switch,
+  .pw-display {
+    box-shadow: none;
+    forced-color-adjust: auto;
+  }
+}
