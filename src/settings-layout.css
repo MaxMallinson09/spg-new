@@ -1,0 +1,94 @@
+/* Responsive layout for the theme and accessibility controls.
+   On wider screens they are separate taskbar controls. On phones they collapse
+   into the same menu to avoid crowding the signed-in user controls. */
+
+.pw-theme-standalone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pw-theme-standalone__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--pw-ink);
+}
+
+.pw-theme-standalone__select {
+  min-height: 2.75rem;
+  max-width: 8.5rem;
+  padding: 0.45rem 0.65rem;
+  color: var(--pw-ink);
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 9999px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pw-theme-standalone__select:hover {
+  border-color: var(--pw-border-hover);
+}
+
+.pw-theme-standalone__select:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+/* The mobile theme row exists in the DOM so switching breakpoints never needs
+   client-only rendering, but it is only exposed when the taskbar is compact. */
+.pw-accessibility__theme-mobile,
+.pw-accessibility__summary-mobile {
+  display: none;
+}
+
+.pw-accessibility__summary-desktop {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  .pw-theme-standalone,
+  .pw-accessibility__summary-desktop {
+    display: none;
+  }
+
+  .pw-accessibility__summary-mobile {
+    display: inline;
+  }
+
+  .pw-accessibility__theme-mobile {
+    display: grid;
+  }
+
+  .pw-taskbar__clock {
+    display: none;
+  }
+
+  .pw-accessibility__panel {
+    top: 4.75rem;
+    right: 0.75rem;
+    width: calc(100vw - 1.5rem);
+    max-height: calc(100vh - 5.5rem);
+  }
+}
+
+@media (max-width: 400px) {
+  .pw-accessibility__summary {
+    padding-inline: 0.6rem;
+  }
+
+  .pw-accessibility__summary-mobile {
+    max-width: 8.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (forced-colors: active) {
+  .pw-theme-standalone__select {
+    forced-color-adjust: auto;
+  }
+}
