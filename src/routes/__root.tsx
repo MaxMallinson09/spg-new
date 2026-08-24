@@ -4,6 +4,7 @@ import '../styles.css'
 import '../light-theme.css'
 import '../dark-theme.css'
 import '../themes.css'
+import '../accessibility.css'
 
 export const Route = createRootRoute({
   head: () => ({

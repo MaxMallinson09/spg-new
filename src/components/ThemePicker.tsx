@@ -1,90 +1,257 @@
 import { useEffect, useState } from 'react'
 
 const THEMES = [
-  { id: 'original', label: 'Original', swatch: '#2563eb' },
-  { id: 'dark', label: 'Dark', swatch: '#050505' },
-  { id: 'ocean', label: 'Ocean', swatch: '#00695c' },
-  { id: 'spice', label: 'Spice', swatch: '#bf360c' },
-  { id: 'forest', label: 'Forest', swatch: '#1b5e20' },
-  { id: 'rose', label: 'Rose', swatch: '#c2185b' },
-  { id: 'lavender', label: 'Lavender', swatch: '#6a1b9a' },
-  { id: 'light', label: 'Light', swatch: '#78909c' },
-  { id: 'mocha', label: 'Mocha', swatch: '#4e342e' },
-  { id: 'neon', label: 'Neon', swatch: '#00ff9f' },
-  { id: 'midnight', label: 'Midnight', swatch: '#4d9fff' },
-  { id: 'gold', label: 'Gold', swatch: '#d4a017' },
+  { id: 'original', label: 'Original' },
+  { id: 'dark', label: 'Dark' },
+  { id: 'ocean', label: 'Ocean' },
+  { id: 'spice', label: 'Spice' },
+  { id: 'forest', label: 'Forest' },
+  { id: 'rose', label: 'Rose' },
+  { id: 'lavender', label: 'Lavender' },
+  { id: 'light', label: 'Light' },
+  { id: 'mocha', label: 'Mocha' },
+  { id: 'neon', label: 'Neon' },
+  { id: 'midnight', label: 'Midnight' },
+  { id: 'gold', label: 'Gold' },
 ] as const
 
 type ThemeName = (typeof THEMES)[number]['id']
+type ThemeChoice = ThemeName | 'system'
+type FontSize = 'normal' | 'large' | 'extra-large'
+type ContrastPreference = 'system' | 'standard' | 'high'
+type MotionPreference = 'system' | 'reduced'
 
-const STORAGE_KEY = 'spg-theme'
+const THEME_STORAGE_KEY = 'spg-theme'
+const FONT_SIZE_STORAGE_KEY = 'spg-font-size'
+const CONTRAST_STORAGE_KEY = 'spg-contrast'
+const MOTION_STORAGE_KEY = 'spg-motion'
 
 function isThemeName(value: string | null): value is ThemeName {
   return THEMES.some((theme) => theme.id === value)
 }
 
-function applyTheme(theme: ThemeName) {
+function isThemeChoice(value: string | null): value is ThemeChoice {
+  return value === 'system' || isThemeName(value)
+}
+
+function isFontSize(value: string | null): value is FontSize {
+  return value === 'normal' || value === 'large' || value === 'extra-large'
+}
+
+function isContrastPreference(value: string | null): value is ContrastPreference {
+  return value === 'system' || value === 'standard' || value === 'high'
+}
+
+function isMotionPreference(value: string | null): value is MotionPreference {
+  return value === 'system' || value === 'reduced'
+}
+
+function applyTheme(theme: ThemeChoice) {
   const root = document.documentElement
-  root.dataset.theme = theme
+  const resolvedTheme: ThemeName =
+    theme === 'system'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'original'
+      : theme
+
+  root.dataset.theme = resolvedTheme
   // Theme presets replace the old binary class toggle. Clearing it avoids an
   // older :root.dark rule fighting the selected preset if a cached page still
   // has the class from a previous session.
   root.classList.remove('dark')
 }
 
+function applyFontSize(fontSize: FontSize) {
+  document.documentElement.dataset.fontSize = fontSize
+}
+
+function applyContrast(contrast: ContrastPreference) {
+  document.documentElement.dataset.contrast = contrast
+}
+
+function applyMotion(motion: MotionPreference) {
+  document.documentElement.dataset.motion = motion
+}
+
+function persist(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value)
+  } catch {
+    // Preferences still work for the current page when storage is unavailable.
+  }
+}
+
 export default function ThemePicker() {
-  // Keep the server render deterministic, then restore the saved/system choice
-  // after mount so SSR and hydration never disagree about the selected option.
-  const [theme, setTheme] = useState<ThemeName>('original')
+  // Deterministic defaults keep SSR and hydration in sync. Saved preferences
+  // are restored after mount and then applied directly to the root element.
+  const [theme, setTheme] = useState<ThemeChoice>('system')
+  const [fontSize, setFontSize] = useState<FontSize>('normal')
+  const [contrast, setContrast] = useState<ContrastPreference>('system')
+  const [motion, setMotion] = useState<MotionPreference>('system')
 
   useEffect(() => {
-    let next: ThemeName = window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'original'
+    let nextTheme: ThemeChoice = 'system'
+    let nextFontSize: FontSize = 'normal'
+    let nextContrast: ContrastPreference = 'system'
+    let nextMotion: MotionPreference = 'system'
 
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY)
-      if (isThemeName(saved)) next = saved
+      const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
+      const savedFontSize = window.localStorage.getItem(FONT_SIZE_STORAGE_KEY)
+      const savedContrast = window.localStorage.getItem(CONTRAST_STORAGE_KEY)
+      const savedMotion = window.localStorage.getItem(MOTION_STORAGE_KEY)
+
+      if (isThemeChoice(savedTheme)) nextTheme = savedTheme
+      if (isFontSize(savedFontSize)) nextFontSize = savedFontSize
+      if (isContrastPreference(savedContrast)) nextContrast = savedContrast
+      if (isMotionPreference(savedMotion)) nextMotion = savedMotion
     } catch {
-      // Theme persistence is optional; privacy modes may deny localStorage.
+      // Privacy modes may deny localStorage; the defaults remain fully usable.
     }
 
-    setTheme(next)
-    applyTheme(next)
+    setTheme(nextTheme)
+    setFontSize(nextFontSize)
+    setContrast(nextContrast)
+    setMotion(nextMotion)
+
+    applyTheme(nextTheme)
+    applyFontSize(nextFontSize)
+    applyContrast(nextContrast)
+    applyMotion(nextMotion)
   }, [])
 
-  const selectTheme = (next: ThemeName) => {
+  useEffect(() => {
+    if (theme !== 'system') return
+
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const syncTheme = () => applyTheme('system')
+    media.addEventListener('change', syncTheme)
+    return () => media.removeEventListener('change', syncTheme)
+  }, [theme])
+
+  const selectTheme = (next: ThemeChoice) => {
     setTheme(next)
     applyTheme(next)
+    persist(THEME_STORAGE_KEY, next)
+  }
+
+  const selectFontSize = (next: FontSize) => {
+    setFontSize(next)
+    applyFontSize(next)
+    persist(FONT_SIZE_STORAGE_KEY, next)
+  }
+
+  const selectContrast = (next: ContrastPreference) => {
+    setContrast(next)
+    applyContrast(next)
+    persist(CONTRAST_STORAGE_KEY, next)
+  }
+
+  const selectMotion = (next: MotionPreference) => {
+    setMotion(next)
+    applyMotion(next)
+    persist(MOTION_STORAGE_KEY, next)
+  }
+
+  const resetPreferences = () => {
+    setTheme('system')
+    setFontSize('normal')
+    setContrast('system')
+    setMotion('system')
+
+    applyTheme('system')
+    applyFontSize('normal')
+    applyContrast('system')
+    applyMotion('system')
+
     try {
-      window.localStorage.setItem(STORAGE_KEY, next)
+      window.localStorage.removeItem(THEME_STORAGE_KEY)
+      window.localStorage.removeItem(FONT_SIZE_STORAGE_KEY)
+      window.localStorage.removeItem(CONTRAST_STORAGE_KEY)
+      window.localStorage.removeItem(MOTION_STORAGE_KEY)
     } catch {
-      // The visual change still works even when persistence is unavailable.
+      // Reset still applies to the current page if storage is unavailable.
     }
   }
 
-  const selected = THEMES.find((item) => item.id === theme) ?? THEMES[0]
-
   return (
-    <label className="pw-theme-picker">
-      <span
-        className="pw-theme-picker__swatch"
-        style={{ backgroundColor: selected.swatch }}
-        aria-hidden="true"
-      />
-      <span className="pw-sr-only">Theme</span>
-      <select
-        className="pw-theme-picker__select"
-        value={theme}
-        onChange={(event) => selectTheme(event.target.value as ThemeName)}
-        aria-label="Theme"
+    <details className="pw-accessibility">
+      <summary className="pw-accessibility__summary">Accessibility</summary>
+      <div
+        className="pw-accessibility__panel"
+        role="group"
+        aria-label="Accessibility and display settings"
       >
-        {THEMES.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        <div className="pw-accessibility__heading">
+          <strong>Accessibility &amp; display</strong>
+          <span>Saved on this device</span>
+        </div>
+
+        <label className="pw-accessibility__setting" htmlFor="pw-theme">
+          <span>Theme</span>
+          <select
+            id="pw-theme"
+            value={theme}
+            onChange={(event) => selectTheme(event.target.value as ThemeChoice)}
+          >
+            <option value="system">System (light/dark)</option>
+            {THEMES.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="pw-accessibility__setting" htmlFor="pw-font-size">
+          <span>Text size</span>
+          <select
+            id="pw-font-size"
+            value={fontSize}
+            onChange={(event) => selectFontSize(event.target.value as FontSize)}
+          >
+            <option value="normal">Normal</option>
+            <option value="large">Large</option>
+            <option value="extra-large">Extra large</option>
+          </select>
+        </label>
+
+        <label className="pw-accessibility__setting" htmlFor="pw-contrast">
+          <span>Contrast</span>
+          <select
+            id="pw-contrast"
+            value={contrast}
+            onChange={(event) =>
+              selectContrast(event.target.value as ContrastPreference)
+            }
+          >
+            <option value="system">Device setting</option>
+            <option value="standard">Standard</option>
+            <option value="high">High contrast</option>
+          </select>
+        </label>
+
+        <label className="pw-accessibility__setting" htmlFor="pw-motion">
+          <span>Motion</span>
+          <select
+            id="pw-motion"
+            value={motion}
+            onChange={(event) => selectMotion(event.target.value as MotionPreference)}
+          >
+            <option value="system">Device setting</option>
+            <option value="reduced">Reduce motion</option>
+          </select>
+        </label>
+
+        <button
+          type="button"
+          className="pw-accessibility__reset"
+          onClick={resetPreferences}
+        >
+          Reset accessibility settings
+        </button>
+      </div>
+    </details>
   )
 }
