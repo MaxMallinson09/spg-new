@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 
+import ThemePicker from './ThemePicker'
 import UserMenu from './UserMenu'
 
 // Child-friendly, neutral words only: food, colors, nature, and everyday
@@ -182,9 +183,6 @@ export default function PasswordGenerator() {
   const [spin, setSpin] = useState(false)
   const [advanced, setAdvanced] = useState(false)
   const [length, setLength] = useState(ADVANCED_DEFAULT_LENGTH)
-  const [isDark, setIsDark] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches,
-  )
   const [now, setNow] = useState<Date | null>(null)
 
   // Covers the first render and every later change of mode or length, so the
@@ -193,10 +191,6 @@ export default function PasswordGenerator() {
     setPassword(advanced ? generateAdvancedPassword(length) : generatePassword())
     setCopyState('idle')
   }, [advanced, length])
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark)
-  }, [isDark])
 
   useEffect(() => {
     setNow(new Date())
@@ -235,45 +229,7 @@ export default function PasswordGenerator() {
             {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
         )}
-        <button
-          type="button"
-          onClick={() => setIsDark((prev) => !prev)}
-          className="pw-theme-toggle"
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {isDark ? (
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-            </svg>
-          ) : (
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
-            </svg>
-          )}
-        </button>
+        <ThemePicker />
         <UserMenu />
       </header>
 
