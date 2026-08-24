@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 const THEMES = [
-  { id: 'original', label: 'Light theme', swatch: '#2563eb' },
+  { id: 'original', label: 'Light', swatch: '#2563eb' },
   { id: 'dark', label: 'Dark', swatch: '#050505' },
   { id: 'ocean', label: 'Ocean', swatch: '#00695c' },
   { id: 'spice', label: 'Spice', swatch: '#bf360c' },
@@ -25,6 +25,9 @@ const FONT_SIZE_STORAGE_KEY = 'spg-font-size'
 const CONTRAST_STORAGE_KEY = 'spg-contrast'
 const MOTION_STORAGE_KEY = 'spg-motion'
 
+const HIGH_CONTRAST_THEMES: readonly ThemeName[] = ['original', 'dark']
+const DARK_HIGH_CONTRAST_SOURCES: readonly ThemeName[] = ['dark', 'neon', 'midnight']
+
 function isThemeName(value: string | null): value is ThemeName {
   return THEMES.some((theme) => theme.id === value)
 }
@@ -39,6 +42,14 @@ function isContrastPreference(value: string | null): value is ContrastPreference
 
 function isMotionPreference(value: string | null): value is MotionPreference {
   return value === 'standard' || value === 'reduced'
+}
+
+function isHighContrastTheme(theme: ThemeName) {
+  return HIGH_CONTRAST_THEMES.includes(theme)
+}
+
+function highContrastThemeFor(theme: ThemeName): ThemeName {
+  return DARK_HIGH_CONTRAST_SOURCES.includes(theme) ? 'dark' : 'original'
 }
 
 function applyTheme(theme: ThemeName) {
@@ -72,34 +83,42 @@ function persist(key: string, value: string) {
 
 function ThemeButtons({
   theme,
+  highContrast,
   onSelect,
 }: {
   theme: ThemeName
+  highContrast: boolean
   onSelect: (theme: ThemeName) => void
 }) {
   return (
     <div className="pw-theme-grid" role="group" aria-label="Choose a theme colour">
-      {THEMES.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          className="pw-theme-choice"
-          aria-pressed={theme === item.id}
-          onClick={() => onSelect(item.id)}
-        >
-          <span
-            className="pw-theme-choice__swatch"
-            style={{ backgroundColor: item.swatch }}
-            aria-hidden="true"
-          />
-          <span className="pw-theme-choice__label">{item.label}</span>
-          {theme === item.id && (
-            <span className="pw-theme-choice__check" aria-hidden="true">
-              ✓
-            </span>
-          )}
-        </button>
-      ))}
+      {THEMES.map((item) => {
+        const disabled = highContrast && !isHighContrastTheme(item.id)
+
+        return (
+          <button
+            key={item.id}
+            type="button"
+            className="pw-theme-choice"
+            aria-pressed={theme === item.id}
+            disabled={disabled}
+            title={disabled ? 'Available with Standard contrast' : undefined}
+            onClick={() => onSelect(item.id)}
+          >
+            <span
+              className="pw-theme-choice__swatch"
+              style={{ backgroundColor: item.swatch }}
+              aria-hidden="true"
+            />
+            <span className="pw-theme-choice__label">{item.label}</span>
+            {theme === item.id && (
+              <span className="pw-theme-choice__check" aria-hidden="true">
+                ✓
+              </span>
+            )}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -136,6 +155,15 @@ export default function ThemePicker() {
       if (isMotionPreference(savedMotion)) nextMotion = savedMotion
     } catch {
       // Privacy modes may deny localStorage; the defaults remain fully usable.
+    }
+
+    // High contrast intentionally has only a light and dark presentation. If
+    // an older saved preference combines high contrast with a colour theme,
+    // migrate it to the closest light/dark equivalent instead of showing a
+    // disabled theme as selected.
+    if (nextContrast === 'high' && !isHighContrastTheme(nextTheme)) {
+      nextTheme = highContrastThemeFor(nextTheme)
+      persist(THEME_STORAGE_KEY, nextTheme)
     }
 
     setTheme(nextTheme)
@@ -175,6 +203,8 @@ export default function ThemePicker() {
   }, [accessibilityOpen])
 
   const selectTheme = (next: ThemeName) => {
+    if (contrast === 'high' && !isHighContrastTheme(next)) return
+
     setTheme(next)
     applyTheme(next)
     persist(THEME_STORAGE_KEY, next)
@@ -188,6 +218,13 @@ export default function ThemePicker() {
   }
 
   const selectContrast = (next: ContrastPreference) => {
+    if (next === 'high' && !isHighContrastTheme(theme)) {
+      const compatibleTheme = highContrastThemeFor(theme)
+      setTheme(compatibleTheme)
+      applyTheme(compatibleTheme)
+      persist(THEME_STORAGE_KEY, compatibleTheme)
+    }
+
     setContrast(next)
     applyContrast(next)
     persist(CONTRAST_STORAGE_KEY, next)
@@ -223,6 +260,7 @@ export default function ThemePicker() {
   }
 
   const selectedTheme = THEMES.find((item) => item.id === theme) ?? THEMES[0]
+  const highContrast = contrast === 'high'
 
   return (
     <>
@@ -241,9 +279,17 @@ export default function ThemePicker() {
         <div className="pw-theme-menu__panel">
           <div className="pw-theme-menu__heading">
             <strong>Choose a theme</strong>
-            <span>{selectedTheme.label} is selected</span>
+            <span>
+              {highContrast
+                ? 'High contrast supports Light and Dark only'
+                : `${selectedTheme.label} is selected`}
+            </span>
           </div>
-          <ThemeButtons theme={theme} onSelect={selectTheme} />
+          <ThemeButtons
+            theme={theme}
+            highContrast={highContrast}
+            onSelect={selectTheme}
+          />
         </div>
       </details>
 
@@ -273,7 +319,11 @@ export default function ThemePicker() {
 
             <div className="pw-accessibility__theme-mobile">
               <span className="pw-accessibility__theme-title">Theme</span>
-              <ThemeButtons theme={theme} onSelect={selectTheme} />
+              <ThemeButtons
+                theme={theme}
+                highContrast={highContrast}
+                onSelect={selectTheme}
+              />
             </div>
 
             <label className="pw-accessibility__setting" htmlFor="pw-font-size">
