@@ -212,24 +212,31 @@
 
   :root[data-font-size='large'] .pw-page {
     align-items: flex-start;
-    padding-top: 8rem;
+    padding-top: 9.5rem;
   }
 
   :root[data-font-size='extra-large'] .pw-page {
     align-items: flex-start;
-    padding-top: 10rem;
+    padding-top: 11.5rem;
   }
+}
 
-  :root[data-font-size='large'] .pw-taskbar__clock,
-  :root[data-font-size='extra-large'] .pw-taskbar__clock {
+/* The clock gives way on narrower desktops at normal text size, but enlarged
+   text keeps it on a dedicated first row instead of removing it. */
+@media (max-width: 1100px) and (min-width: 641px) {
+  :root[data-font-size='normal'] .pw-taskbar__clock {
     display: none;
   }
 }
 
-/* The clock is useful on wide desktops but gives way before controls wrap. */
-@media (max-width: 1100px) and (min-width: 641px) {
-  .pw-taskbar__clock {
-    display: none;
+@media (min-width: 641px) {
+  :root[data-font-size='large'] .pw-taskbar__clock,
+  :root[data-font-size='extra-large'] .pw-taskbar__clock {
+    display: block;
+    flex: 0 0 100%;
+    width: 100%;
+    text-align: right;
+    padding-right: 0.2rem;
   }
 }
 
