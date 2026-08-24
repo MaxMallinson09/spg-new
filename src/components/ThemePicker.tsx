@@ -111,7 +111,10 @@ export default function ThemePicker() {
   const [fontSize, setFontSize] = useState<FontSize>('normal')
   const [contrast, setContrast] = useState<ContrastPreference>('standard')
   const [motion, setMotion] = useState<MotionPreference>('standard')
+  const [accessibilityOpen, setAccessibilityOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDetailsElement>(null)
+  const accessibilityMenuRef = useRef<HTMLDivElement>(null)
+  const accessibilityButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     let nextTheme: ThemeName = 'original'
@@ -145,6 +148,31 @@ export default function ThemePicker() {
     applyContrast(nextContrast)
     applyMotion(nextMotion)
   }, [])
+
+  useEffect(() => {
+    if (!accessibilityOpen) return
+
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (!accessibilityMenuRef.current?.contains(target)) {
+        setAccessibilityOpen(false)
+      }
+    }
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setAccessibilityOpen(false)
+      accessibilityButtonRef.current?.focus()
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsidePress)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePress)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [accessibilityOpen])
 
   const selectTheme = (next: ThemeName) => {
     setTheme(next)
@@ -189,6 +217,11 @@ export default function ThemePicker() {
     }
   }
 
+  const toggleAccessibility = () => {
+    if (themeMenuRef.current) themeMenuRef.current.open = false
+    setAccessibilityOpen((open) => !open)
+  }
+
   const selectedTheme = THEMES.find((item) => item.id === theme) ?? THEMES[0]
 
   return (
@@ -214,74 +247,84 @@ export default function ThemePicker() {
         </div>
       </details>
 
-      <details className="pw-accessibility">
-        <summary className="pw-accessibility__summary">
+      <div className="pw-accessibility" ref={accessibilityMenuRef}>
+        <button
+          ref={accessibilityButtonRef}
+          type="button"
+          className="pw-accessibility__summary"
+          aria-expanded={accessibilityOpen}
+          aria-controls="pw-accessibility-panel"
+          onClick={toggleAccessibility}
+        >
           <span className="pw-accessibility__summary-desktop">Accessibility</span>
           <span className="pw-accessibility__summary-mobile">Settings</span>
-        </summary>
-        <div
-          className="pw-accessibility__panel"
-          role="group"
-          aria-label="Accessibility settings"
-        >
-          <div className="pw-accessibility__heading">
-            <strong>Accessibility</strong>
-            <span>Saved on this device</span>
-          </div>
-
-          <div className="pw-accessibility__theme-mobile">
-            <span className="pw-accessibility__theme-title">Theme</span>
-            <ThemeButtons theme={theme} onSelect={selectTheme} />
-          </div>
-
-          <label className="pw-accessibility__setting" htmlFor="pw-font-size">
-            <span>Text size</span>
-            <select
-              id="pw-font-size"
-              value={fontSize}
-              onChange={(event) => selectFontSize(event.target.value as FontSize)}
-            >
-              <option value="normal">Normal</option>
-              <option value="large">Large</option>
-              <option value="extra-large">Extra large</option>
-            </select>
-          </label>
-
-          <label className="pw-accessibility__setting" htmlFor="pw-contrast">
-            <span>Contrast</span>
-            <select
-              id="pw-contrast"
-              value={contrast}
-              onChange={(event) =>
-                selectContrast(event.target.value as ContrastPreference)
-              }
-            >
-              <option value="standard">Standard</option>
-              <option value="high">High contrast</option>
-            </select>
-          </label>
-
-          <label className="pw-accessibility__setting" htmlFor="pw-motion">
-            <span>Motion</span>
-            <select
-              id="pw-motion"
-              value={motion}
-              onChange={(event) => selectMotion(event.target.value as MotionPreference)}
-            >
-              <option value="standard">Standard</option>
-              <option value="reduced">Reduce motion</option>
-            </select>
-          </label>
-
-          <button
-            type="button"
-            className="pw-accessibility__reset"
-            onClick={resetAccessibility}
+        </button>
+        {accessibilityOpen && (
+          <div
+            id="pw-accessibility-panel"
+            className="pw-accessibility__panel"
+            role="group"
+            aria-label="Accessibility settings"
           >
-            Reset accessibility settings
-          </button>
-        </div>
-      </details>
+            <div className="pw-accessibility__heading">
+              <strong>Accessibility</strong>
+              <span>Saved on this device</span>
+            </div>
+
+            <div className="pw-accessibility__theme-mobile">
+              <span className="pw-accessibility__theme-title">Theme</span>
+              <ThemeButtons theme={theme} onSelect={selectTheme} />
+            </div>
+
+            <label className="pw-accessibility__setting" htmlFor="pw-font-size">
+              <span>Text size</span>
+              <select
+                id="pw-font-size"
+                value={fontSize}
+                onChange={(event) => selectFontSize(event.target.value as FontSize)}
+              >
+                <option value="normal">Normal</option>
+                <option value="large">Large</option>
+                <option value="extra-large">Extra large</option>
+              </select>
+            </label>
+
+            <label className="pw-accessibility__setting" htmlFor="pw-contrast">
+              <span>Contrast</span>
+              <select
+                id="pw-contrast"
+                value={contrast}
+                onChange={(event) =>
+                  selectContrast(event.target.value as ContrastPreference)
+                }
+              >
+                <option value="standard">Standard</option>
+                <option value="high">High contrast</option>
+              </select>
+            </label>
+
+            <label className="pw-accessibility__setting" htmlFor="pw-motion">
+              <span>Motion</span>
+              <select
+                id="pw-motion"
+                value={motion}
+                onChange={(event) => selectMotion(event.target.value as MotionPreference)}
+              >
+                <option value="standard">Standard</option>
+                <option value="reduced">Reduce motion</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              className="pw-accessibility__reset"
+              onClick={resetAccessibility}
+            >
+              Reset accessibility settings
+            </button>
+          </div>
+        )}
+      </div>
     </>
   )
 }
