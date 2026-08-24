@@ -1,6 +1,6 @@
-/* User-controlled accessibility and display preferences.
-   These rules load after the theme presets so accessibility choices can
-   deliberately take precedence without changing password generation. */
+/* User-controlled accessibility preferences. These rules load after the theme
+   presets so accessibility choices can deliberately take precedence without
+   changing password generation. */
 
 :root[data-font-size='normal'] {
   font-size: 100%;
@@ -14,15 +14,22 @@
   font-size: 125%;
 }
 
-/* Manual reduced-motion mode. The base stylesheet already respects the OS
-   prefers-reduced-motion setting; this adds an explicit in-app override. */
+/* Reduced motion is an explicit off switch, not merely a shorter animation.
+   Removing transitions/animations entirely makes the setting immediately
+   visible on regenerate, buttons, menus, sliders and theme changes. */
 :root[data-motion='reduced'] *,
 :root[data-motion='reduced'] *::before,
 :root[data-motion='reduced'] *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
+  animation: none !important;
+  transition: none !important;
   scroll-behavior: auto !important;
+}
+
+:root[data-motion='reduced'] .pw-btn:active,
+:root[data-motion='reduced'] .pw-btn--spin .pw-btn__icon,
+:root[data-motion='reduced'] .pw-length__slider:active::-webkit-slider-thumb,
+:root[data-motion='reduced'] .pw-length__slider:active::-moz-range-thumb {
+  transform: none !important;
 }
 
 /* High contrast intentionally trades theme colour fidelity for legibility. */
@@ -76,67 +83,11 @@
   color-scheme: dark;
 }
 
-/* When the preference is left on "Device setting", honour browsers that expose
-   prefers-contrast. Browsers without it simply keep the selected theme. */
-@media (prefers-contrast: more) {
-  :root[data-contrast='system'] {
-    --pw-bg: #ffffff;
-    --pw-surface: #ffffff;
-    --pw-surface-muted: #f2f2f2;
-    --pw-border: #000000;
-    --pw-border-hover: #000000;
-    --pw-ink: #000000;
-    --pw-muted: #1a1a1a;
-    --pw-primary: #0037a6;
-    --pw-primary-dark: #001f66;
-    --pw-accent: #006b3c;
-    --pw-danger: #9f001d;
-    --pw-danger-dark: #700014;
-    --pw-ring: rgba(0, 0, 0, 0.35);
-    --pw-heading: #000000;
-    --pw-password-bg: #ffffff;
-    --pw-password-color: #000000;
-    --pw-password-meta: #000000;
-    --pw-password-border: #000000;
-    --pw-primary-contrast: #ffffff;
-    --pw-taskbar-bg: #ffffff;
-    color-scheme: light;
-  }
-
-  :root[data-contrast='system'][data-theme='dark'],
-  :root[data-contrast='system'][data-theme='neon'],
-  :root[data-contrast='system'][data-theme='midnight'] {
-    --pw-bg: #000000;
-    --pw-surface: #000000;
-    --pw-surface-muted: #111111;
-    --pw-border: #ffffff;
-    --pw-border-hover: #ffffff;
-    --pw-ink: #ffffff;
-    --pw-muted: #f0f0f0;
-    --pw-primary: #9dcbff;
-    --pw-primary-dark: #cbe3ff;
-    --pw-accent: #79ffc0;
-    --pw-danger: #ff9aaa;
-    --pw-danger-dark: #ffc2cc;
-    --pw-ring: rgba(255, 255, 255, 0.45);
-    --pw-heading: #ffffff;
-    --pw-password-bg: #000000;
-    --pw-password-color: #ffffff;
-    --pw-password-meta: #f0f0f0;
-    --pw-password-border: #ffffff;
-    --pw-primary-contrast: #000000;
-    --pw-taskbar-bg: #000000;
-    color-scheme: dark;
-  }
-}
-
 :root[data-contrast='high'] :focus-visible {
   outline-color: var(--pw-ink) !important;
   outline-width: 3px !important;
 }
 
-/* The taskbar now exposes one compact accessibility menu instead of a bare
-   theme select, keeping the controls discoverable without crowding the card. */
 .pw-accessibility {
   position: relative;
 }
@@ -162,18 +113,6 @@
 
 .pw-accessibility__summary::-webkit-details-marker {
   display: none;
-}
-
-.pw-accessibility__summary::after {
-  content: '▾';
-  margin-left: 0.4rem;
-  font-size: 0.75em;
-  transform-origin: center;
-  transition: transform 0.15s ease;
-}
-
-.pw-accessibility[open] .pw-accessibility__summary::after {
-  transform: rotate(180deg);
 }
 
 .pw-accessibility__summary:hover {
@@ -283,32 +222,15 @@
   justify-content: center;
 }
 
-@media (max-width: 560px) {
-  .pw-taskbar__clock {
-    display: none;
-  }
-
-  .pw-accessibility__panel {
-    top: 4.75rem;
-    right: 0.75rem;
-    width: calc(100vw - 1.5rem);
-    max-height: calc(100vh - 5.5rem);
-  }
-}
-
 @media (max-width: 360px) {
-  .pw-accessibility__summary {
-    padding-inline: 0.6rem;
-  }
-
   .pw-accessibility__setting {
     grid-template-columns: 1fr;
     gap: 0.35rem;
   }
 }
 
-/* Let Windows High Contrast / forced-colours mode replace decorative colours
-   rather than fighting the user's system palette. */
+/* Windows High Contrast / forced-colours remains supported even though there
+   is no longer a user-facing "device preference" option. */
 @media (forced-colors: active) {
   .pw-card,
   .pw-taskbar,
