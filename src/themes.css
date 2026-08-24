@@ -1,0 +1,346 @@
+/* Theme presets. The original and dark presets preserve the app's existing
+   blue/black design; the additional palettes are based on the supplied theme
+   set. Only visual CSS variables change — password generation and auth are
+   untouched. */
+
+:root[data-theme='original'] {
+  --pw-bg: linear-gradient(160deg, #3b82f6 0%, #2563eb 100%);
+  --pw-surface: #ffffff;
+  --pw-surface-muted: #f8f9fc;
+  --pw-border: #e2e5eb;
+  --pw-border-hover: #c7ccd6;
+  --pw-ink: #1a2333;
+  --pw-muted: #6b7385;
+  --pw-primary: #2952e3;
+  --pw-primary-dark: #1f3ec2;
+  --pw-accent: #0f9d78;
+  --pw-ring: rgba(41, 82, 227, 0.15);
+  --pw-heading: #1a2333;
+  --pw-password-bg: #f8f9fc;
+  --pw-password-color: #1a2333;
+  --pw-password-meta: #6b7385;
+  --pw-password-border: #e2e5eb;
+  --pw-primary-contrast: #ffffff;
+  --pw-taskbar-bg: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --pw-bg: #050505;
+  --pw-surface: #111214;
+  --pw-surface-muted: #18191c;
+  --pw-border: #2b2d31;
+  --pw-border-hover: #404349;
+  --pw-ink: #f2f4f7;
+  --pw-muted: #a3a7ae;
+  --pw-primary: #60a5fa;
+  --pw-primary-dark: #93c5fd;
+  --pw-accent: #34d399;
+  --pw-ring: rgba(96, 165, 250, 0.22);
+  --pw-heading: #f2f4f7;
+  --pw-password-bg: #18191c;
+  --pw-password-color: #ffffff;
+  --pw-password-meta: #a3a7ae;
+  --pw-password-border: #2b2d31;
+  --pw-primary-contrast: #0b1220;
+  --pw-taskbar-bg: #050505;
+  color-scheme: dark;
+}
+
+:root[data-theme='ocean'] {
+  --pw-bg: #00695c;
+  --pw-surface: #e0f7fa;
+  --pw-surface-muted: #b2ebf2;
+  --pw-border: #80cbc4;
+  --pw-border-hover: #4db6ac;
+  --pw-ink: #173f3c;
+  --pw-muted: #456b68;
+  --pw-primary: #00acc1;
+  --pw-primary-dark: #008ba3;
+  --pw-accent: #00897b;
+  --pw-ring: rgba(0, 172, 193, 0.22);
+  --pw-heading: #00695c;
+  --pw-password-bg: #004d40;
+  --pw-password-color: #00e5ff;
+  --pw-password-meta: #b2ebf2;
+  --pw-password-border: #00695c;
+  --pw-primary-contrast: #06272c;
+  --pw-taskbar-bg: #e0f7fa;
+  color-scheme: light;
+}
+
+:root[data-theme='spice'] {
+  --pw-bg: #bf360c;
+  --pw-surface: #fff3e0;
+  --pw-surface-muted: #ffe0b2;
+  --pw-border: #ffcc80;
+  --pw-border-hover: #ffb74d;
+  --pw-ink: #4e2b16;
+  --pw-muted: #875c3d;
+  --pw-primary: #ff6f00;
+  --pw-primary-dark: #e65100;
+  --pw-accent: #bf360c;
+  --pw-ring: rgba(255, 111, 0, 0.22);
+  --pw-heading: #bf360c;
+  --pw-password-bg: #bf360c;
+  --pw-password-color: #ffe0b2;
+  --pw-password-meta: #ffccbc;
+  --pw-password-border: #9f2c08;
+  --pw-primary-contrast: #2d1500;
+  --pw-taskbar-bg: #fff3e0;
+  color-scheme: light;
+}
+
+:root[data-theme='forest'] {
+  --pw-bg: #1b5e20;
+  --pw-surface: #e8f5e9;
+  --pw-surface-muted: #c8e6c9;
+  --pw-border: #a5d6a7;
+  --pw-border-hover: #81c784;
+  --pw-ink: #214327;
+  --pw-muted: #54745a;
+  --pw-primary: #43a047;
+  --pw-primary-dark: #2e7d32;
+  --pw-accent: #2e7d32;
+  --pw-ring: rgba(67, 160, 71, 0.22);
+  --pw-heading: #1b5e20;
+  --pw-password-bg: #1b5e20;
+  --pw-password-color: #c8e6c9;
+  --pw-password-meta: #e8f5e9;
+  --pw-password-border: #164d1a;
+  --pw-primary-contrast: #102a13;
+  --pw-taskbar-bg: #e8f5e9;
+  color-scheme: light;
+}
+
+:root[data-theme='rose'] {
+  --pw-bg: #880e4f;
+  --pw-surface: #fce4ec;
+  --pw-surface-muted: #f8bbd0;
+  --pw-border: #f48fb1;
+  --pw-border-hover: #f06292;
+  --pw-ink: #4d1830;
+  --pw-muted: #84546a;
+  --pw-primary: #e91e63;
+  --pw-primary-dark: #c2185b;
+  --pw-accent: #ad1457;
+  --pw-ring: rgba(233, 30, 99, 0.2);
+  --pw-heading: #c2185b;
+  --pw-password-bg: #880e4f;
+  --pw-password-color: #f8bbd0;
+  --pw-password-meta: #fce4ec;
+  --pw-password-border: #6f0b40;
+  --pw-primary-contrast: #ffffff;
+  --pw-taskbar-bg: #fce4ec;
+  color-scheme: light;
+}
+
+:root[data-theme='lavender'] {
+  --pw-bg: #4a148c;
+  --pw-surface: #f3e5f5;
+  --pw-surface-muted: #e1bee7;
+  --pw-border: #ce93d8;
+  --pw-border-hover: #ba68c8;
+  --pw-ink: #482251;
+  --pw-muted: #775780;
+  --pw-primary: #8e24aa;
+  --pw-primary-dark: #6a1b9a;
+  --pw-accent: #7b1fa2;
+  --pw-ring: rgba(142, 36, 170, 0.2);
+  --pw-heading: #6a1b9a;
+  --pw-password-bg: #4a148c;
+  --pw-password-color: #e1bee7;
+  --pw-password-meta: #f3e5f5;
+  --pw-password-border: #3b1070;
+  --pw-primary-contrast: #ffffff;
+  --pw-taskbar-bg: #f3e5f5;
+  color-scheme: light;
+}
+
+:root[data-theme='light'] {
+  --pw-bg: #78909c;
+  --pw-surface: #f5f5f5;
+  --pw-surface-muted: #eceff1;
+  --pw-border: #cfd8dc;
+  --pw-border-hover: #b0bec5;
+  --pw-ink: #263238;
+  --pw-muted: #607d8b;
+  --pw-primary: #546e7a;
+  --pw-primary-dark: #455a64;
+  --pw-accent: #607d8b;
+  --pw-ring: rgba(84, 110, 122, 0.2);
+  --pw-heading: #455a64;
+  --pw-password-bg: #37474f;
+  --pw-password-color: #eceff1;
+  --pw-password-meta: #cfd8dc;
+  --pw-password-border: #263238;
+  --pw-primary-contrast: #ffffff;
+  --pw-taskbar-bg: #f5f5f5;
+  color-scheme: light;
+}
+
+:root[data-theme='mocha'] {
+  --pw-bg: #3e2723;
+  --pw-surface: #efebe9;
+  --pw-surface-muted: #d7ccc8;
+  --pw-border: #bcaaa4;
+  --pw-border-hover: #a1887f;
+  --pw-ink: #3b2925;
+  --pw-muted: #795548;
+  --pw-primary: #6d4c41;
+  --pw-primary-dark: #4e342e;
+  --pw-accent: #795548;
+  --pw-ring: rgba(109, 76, 65, 0.2);
+  --pw-heading: #4e342e;
+  --pw-password-bg: #3e2723;
+  --pw-password-color: #d7ccc8;
+  --pw-password-meta: #efebe9;
+  --pw-password-border: #2c1b18;
+  --pw-primary-contrast: #ffffff;
+  --pw-taskbar-bg: #efebe9;
+  color-scheme: light;
+}
+
+:root[data-theme='neon'] {
+  --pw-bg: #0a0a0a;
+  --pw-surface: #111111;
+  --pw-surface-muted: #191919;
+  --pw-border: #303030;
+  --pw-border-hover: #4a4a4a;
+  --pw-ink: #f4f4f4;
+  --pw-muted: #a7a7a7;
+  --pw-primary: #ff00ff;
+  --pw-primary-dark: #d900d9;
+  --pw-accent: #00ff9f;
+  --pw-ring: rgba(255, 0, 255, 0.24);
+  --pw-heading: #00ff9f;
+  --pw-password-bg: #0a0a0a;
+  --pw-password-color: #00ff9f;
+  --pw-password-meta: #a4ffdc;
+  --pw-password-border: #303030;
+  --pw-primary-contrast: #111111;
+  --pw-taskbar-bg: #050505;
+  color-scheme: dark;
+}
+
+:root[data-theme='midnight'] {
+  --pw-bg: #0d1421;
+  --pw-surface: #111827;
+  --pw-surface-muted: #172033;
+  --pw-border: #28364d;
+  --pw-border-hover: #3b4d69;
+  --pw-ink: #e0f0ff;
+  --pw-muted: #9fb4cc;
+  --pw-primary: #3d8bff;
+  --pw-primary-dark: #63a3ff;
+  --pw-accent: #4d9fff;
+  --pw-ring: rgba(61, 139, 255, 0.24);
+  --pw-heading: #4d9fff;
+  --pw-password-bg: #080d17;
+  --pw-password-color: #e0f0ff;
+  --pw-password-meta: #9fb4cc;
+  --pw-password-border: #1c2a40;
+  --pw-primary-contrast: #08111f;
+  --pw-taskbar-bg: #080e1a;
+  color-scheme: dark;
+}
+
+:root[data-theme='gold'] {
+  --pw-bg: #8b6500;
+  --pw-surface: #fffde7;
+  --pw-surface-muted: #fff9c4;
+  --pw-border: #ffe082;
+  --pw-border-hover: #ffd54f;
+  --pw-ink: #4a390b;
+  --pw-muted: #7a6528;
+  --pw-primary: #d4a017;
+  --pw-primary-dark: #b8860b;
+  --pw-accent: #b8860b;
+  --pw-ring: rgba(212, 160, 23, 0.24);
+  --pw-heading: #b8860b;
+  --pw-password-bg: #5c4200;
+  --pw-password-color: #fff176;
+  --pw-password-meta: #fff9c4;
+  --pw-password-border: #473300;
+  --pw-primary-contrast: #211700;
+  --pw-taskbar-bg: #fffde7;
+  color-scheme: light;
+}
+
+/* Theme-specific roles that do not exist in the base two-colour stylesheet. */
+.pw-title {
+  color: var(--pw-heading, var(--pw-ink));
+}
+
+.pw-display {
+  background: var(--pw-password-bg, var(--pw-surface-muted));
+  border-color: var(--pw-password-border, var(--pw-border));
+}
+
+.pw-display__text {
+  color: var(--pw-password-color, var(--pw-ink));
+}
+
+.pw-display__meta {
+  color: var(--pw-password-meta, var(--pw-muted));
+}
+
+.pw-btn--primary {
+  color: var(--pw-primary-contrast, #ffffff);
+}
+
+.pw-taskbar {
+  background: var(--pw-taskbar-bg, var(--pw-surface));
+}
+
+/* Compact, accessible theme chooser that fits in the existing taskbar. */
+.pw-theme-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.1rem;
+}
+
+.pw-theme-picker__swatch {
+  flex-shrink: 0;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid var(--pw-border-hover);
+  box-shadow: 0 0 0 2px var(--pw-surface-muted);
+}
+
+.pw-theme-picker__select {
+  max-width: 7.2rem;
+  min-width: 5.5rem;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pw-ink);
+  background: var(--pw-surface-muted);
+  border: 1px solid var(--pw-border);
+  border-radius: 9999px;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+}
+
+.pw-theme-picker__select:hover {
+  border-color: var(--pw-border-hover);
+}
+
+.pw-theme-picker__select:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .pw-theme-picker__select {
+    max-width: 5.9rem;
+    min-width: 4.9rem;
+    font-size: 0.7rem;
+  }
+
+  .pw-theme-picker__swatch {
+    display: none;
+  }
+}
