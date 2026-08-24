@@ -173,9 +173,9 @@
   display: inline;
 }
 
-/* Desktop toolbar polish. Reserving space above the generator prevents the
-   fixed toolbar from overlapping the card. The toolbar may wrap if text grows,
-   so large text modes top-align the card below a larger protected clearance. */
+/* Desktop toolbar polish. Normal text stays on one compact row. Enlarged text
+   uses a small two-row grid: the clock gets its own line without forcing the
+   fixed toolbar to stretch across the viewport. */
 @media (min-width: 641px) {
   .pw-page {
     padding-top: 6rem;
@@ -185,8 +185,8 @@
   .pw-taskbar {
     top: 1rem;
     right: 1rem;
-    max-width: min(48rem, calc(100vw - 2rem));
-    flex-wrap: wrap;
+    max-width: calc(100vw - 2rem);
+    flex-wrap: nowrap;
     justify-content: flex-end;
     gap: 0.5rem;
     padding: 0.3rem 0.4rem 0.3rem 0.75rem;
@@ -212,31 +212,84 @@
 
   :root[data-font-size='large'] .pw-page {
     align-items: flex-start;
-    padding-top: 9.5rem;
+    padding-top: 8rem;
   }
 
   :root[data-font-size='extra-large'] .pw-page {
     align-items: flex-start;
-    padding-top: 11.5rem;
+    padding-top: 9rem;
+  }
+
+  :root[data-font-size='large'] .pw-taskbar,
+  :root[data-font-size='extra-large'] .pw-taskbar {
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+    grid-template-areas:
+      'clock clock clock'
+      'theme accessibility user';
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+    align-items: center;
+    justify-items: end;
+    column-gap: 0.5rem;
+    row-gap: 0.25rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 1.25rem;
+  }
+
+  :root[data-font-size='large'] .pw-taskbar__clock,
+  :root[data-font-size='extra-large'] .pw-taskbar__clock {
+    grid-area: clock;
+    display: block;
+    width: auto;
+    padding-inline: 0.2rem;
+    font-size: 0.7rem;
+    text-align: right;
+    justify-self: end;
+  }
+
+  :root[data-font-size='large'] .pw-theme-menu,
+  :root[data-font-size='extra-large'] .pw-theme-menu {
+    grid-area: theme;
+  }
+
+  :root[data-font-size='large'] .pw-accessibility,
+  :root[data-font-size='extra-large'] .pw-accessibility {
+    grid-area: accessibility;
+  }
+
+  :root[data-font-size='large'] .pw-user,
+  :root[data-font-size='extra-large'] .pw-user {
+    grid-area: user;
   }
 }
 
-/* The clock gives way on narrower desktops at normal text size, but enlarged
-   text keeps it on a dedicated first row instead of removing it. */
+/* The clock gives way on narrower desktops only at normal text size. Enlarged
+   text keeps it visible in the compact clock row above the controls. */
 @media (max-width: 1100px) and (min-width: 641px) {
   :root[data-font-size='normal'] .pw-taskbar__clock {
     display: none;
   }
 }
 
-@media (min-width: 641px) {
-  :root[data-font-size='large'] .pw-taskbar__clock,
-  :root[data-font-size='extra-large'] .pw-taskbar__clock {
-    display: block;
-    flex: 0 0 100%;
-    width: 100%;
-    text-align: right;
-    padding-right: 0.2rem;
+/* If a narrow desktop cannot fit all enlarged controls side by side, the user
+   chip gets a final row rather than allowing the toolbar to overflow. */
+@media (max-width: 820px) and (min-width: 641px) {
+  :root[data-font-size='large'] .pw-taskbar,
+  :root[data-font-size='extra-large'] .pw-taskbar {
+    grid-template-columns: max-content max-content;
+    grid-template-areas:
+      'clock clock'
+      'theme accessibility'
+      'user user';
+  }
+
+  :root[data-font-size='large'] .pw-page {
+    padding-top: 10rem;
+  }
+
+  :root[data-font-size='extra-large'] .pw-page {
+    padding-top: 11rem;
   }
 }
 
