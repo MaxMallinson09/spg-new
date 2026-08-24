@@ -103,6 +103,11 @@ function ThemeButtons({
             aria-pressed={theme === item.id}
             disabled={disabled}
             title={disabled ? 'Available with Standard contrast' : undefined}
+            style={
+              disabled
+                ? { opacity: 0.45, filter: 'grayscale(1)', cursor: 'not-allowed' }
+                : undefined
+            }
             onClick={() => onSelect(item.id)}
           >
             <span
