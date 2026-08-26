@@ -63,7 +63,6 @@ const SPECIAL_CHARS = ['!', '*', '?']
 const MIN_LENGTH = 12
 const MAX_LENGTH = 16
 const WORD_COUNT = 3
-const DIGIT_POSITIONS = [1, 2, 3]
 const MAX_ATTEMPTS = 500
 
 // Advanced mode: the user picks the length, so these only bound the slider.
@@ -106,11 +105,11 @@ function randomItem<T>(list: T[]): T {
   return list[randomInt(list.length)]
 }
 
-function randomDigits(): string {
-  return String(randomInt(10)) + String(randomInt(10))
+function randomDigit(): string {
+  return String(randomInt(10))
 }
 
-/** Three distinct words, with two digits after any word, then one symbol. */
+/** Three distinct words, one digit between each word, then one symbol. */
 function buildCandidate(list: string[]): string {
   const picked: string[] = []
   while (picked.length < WORD_COUNT) {
@@ -125,11 +124,14 @@ function buildCandidate(list: string[]): string {
     return index === 0 ? lower[0].toUpperCase() + lower.slice(1) : lower
   })
 
-  const digitPosition = randomItem(DIGIT_POSITIONS)
+  // The two digits double as clear visual and spoken separators between words.
+  // This preserves the same character count while making boundaries obvious.
   return [
-    ...formattedWords.slice(0, digitPosition),
-    randomDigits(),
-    ...formattedWords.slice(digitPosition),
+    formattedWords[0],
+    randomDigit(),
+    formattedWords[1],
+    randomDigit(),
+    formattedWords[2],
     randomItem(SPECIAL_CHARS),
   ].join('')
 }
@@ -370,7 +372,7 @@ export default function PasswordGenerator() {
               <li>12&ndash;16 characters long</li>
               <li>Three easy words that are simple to say out loud</li>
               <li>Only the first letter is capitalised</li>
-              <li>Two numbers in a varying position</li>
+              <li>Two numbers separating the three words</li>
               <li>One special character</li>
             </>
           )}
