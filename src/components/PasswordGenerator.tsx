@@ -56,8 +56,9 @@ const SHORT_WORDS = WORDS.filter((word) => word.length <= 4)
 // dropped because 'dollar sign' / 'percent' / 'ampersand' / 'hash' get
 // misheard or mis-typed more often than they are worth ('#' also goes by
 // pound, number sign and hashtag, so listeners disagree on what was said).
+// '@' is deliberately excluded so generated passwords never contain it.
 // Advanced mode deliberately reuses this same set rather than widening it.
-const SPECIAL_CHARS = ['!', '@', '*', '?']
+const SPECIAL_CHARS = ['!', '*', '?']
 
 const MIN_LENGTH = 12
 const MAX_LENGTH = 16
@@ -117,11 +118,18 @@ function buildCandidate(list: string[]): string {
     if (!picked.includes(word)) picked.push(word)
   }
 
+  // Standard passwords use exactly one capital letter: the first character.
+  // Keeping the remaining words lowercase also makes them easier to dictate.
+  const formattedWords = picked.map((word, index) => {
+    const lower = word.toLowerCase()
+    return index === 0 ? lower[0].toUpperCase() + lower.slice(1) : lower
+  })
+
   const digitPosition = randomItem(DIGIT_POSITIONS)
   return [
-    ...picked.slice(0, digitPosition),
+    ...formattedWords.slice(0, digitPosition),
     randomDigits(),
-    ...picked.slice(digitPosition),
+    ...formattedWords.slice(digitPosition),
     randomItem(SPECIAL_CHARS),
   ].join('')
 }
@@ -355,12 +363,13 @@ export default function PasswordGenerator() {
               <li>{length} characters long</li>
               <li>Upper and lower case letters</li>
               <li>At least one number</li>
-              <li>One of ! ? @ *</li>
+              <li>One of ! ? *</li>
             </>
           ) : (
             <>
               <li>12&ndash;16 characters long</li>
               <li>Three easy words that are simple to say out loud</li>
+              <li>Only the first letter is capitalised</li>
               <li>Two numbers in a varying position</li>
               <li>One special character</li>
             </>
