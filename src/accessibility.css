@@ -14,6 +14,20 @@
   font-size: 125%;
 }
 
+/* Larger desktop displays have enough room to make the enlarged-text options
+   meaningfully bigger without crowding the generator or toolbar. Because the
+   app sizes its card, controls and menus in rem units, this scales both text
+   and surrounding content together rather than enlarging labels alone. */
+@media (min-width: 1200px) {
+  :root[data-font-size='large'] {
+    font-size: 125%;
+  }
+
+  :root[data-font-size='extra-large'] {
+    font-size: 150%;
+  }
+}
+
 /* Reduced motion is an explicit off switch, not merely a shorter animation.
    Removing transitions/animations entirely makes the setting immediately
    visible on regenerate, buttons, menus, sliders and theme changes. */
