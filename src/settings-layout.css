@@ -272,6 +272,13 @@
   :root[data-font-size='extra-large'] .pw-page {
     align-items: center;
   }
+
+  /* Extra Large has more top clearance than bottom padding, which shifts the
+     flex-centred card downward. Offset only that card by half the difference
+     so it is visually centred in the viewport. Large remains unchanged. */
+  :root[data-font-size='extra-large'] .pw-card {
+    transform: translateY(-3.75rem);
+  }
 }
 
 /* The clock gives way on narrower desktops only at normal text size. Enlarged
