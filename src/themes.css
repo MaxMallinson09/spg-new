@@ -16,10 +16,10 @@
   --pw-accent: #0f9d78;
   --pw-ring: rgba(41, 82, 227, 0.15);
   --pw-heading: #1a2333;
-  --pw-password-bg: #f8f9fc;
-  --pw-password-color: #1a2333;
-  --pw-password-meta: #6b7385;
-  --pw-password-border: #e2e5eb;
+  --pw-password-bg: #0b1f3a;
+  --pw-password-color: #4ade80;
+  --pw-password-meta: #cbd5e1;
+  --pw-password-border: #17365d;
   --pw-primary-contrast: #ffffff;
   --pw-taskbar-bg: #ffffff;
   color-scheme: light;
