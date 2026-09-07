@@ -223,19 +223,31 @@ summary:focus-visible,
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .pw-display__text {
-  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 1.65rem;
+  font-weight: 700;
+  font-variant-ligatures: none;
+  font-variant-numeric: slashed-zero tabular-nums;
   color: var(--pw-ink);
-  word-break: break-all;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
   text-align: center;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+.pw-display__word {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .pw-display__meta {
@@ -244,6 +256,13 @@ summary:focus-visible,
   color: var(--pw-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.pw-display__hint {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--pw-password-meta, var(--pw-muted));
+  text-align: center;
 }
 
 .pw-actions {
@@ -624,10 +643,8 @@ summary:focus-visible,
   font-variant-numeric: tabular-nums;
 }
 
-/* A 24-character random string needs to shrink to stay inside the card; the
-   word-based password keeps its larger, more readable size. */
+/* Advanced passwords remain readable even at 24 characters: allow wrapping
+   instead of shrinking the entire string to small print. */
 .pw-display__text--dense {
-  font-size: 1rem;
-  letter-spacing: 0.02em;
-  line-height: 1.5;
+  font-size: 1.35rem;
 }
