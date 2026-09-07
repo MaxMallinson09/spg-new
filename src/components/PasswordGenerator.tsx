@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 
 import ThemePicker from './ThemePicker'
 import UserMenu from './UserMenu'
+import PasswordText from './PasswordText'
 
 // Child-friendly, neutral words only: food, colors, nature, and everyday
 // objects/places. No scary, violent, offensive, or awkward-to-dictate words.
@@ -45,7 +46,7 @@ const WORDS = [
   'Ruby', 'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup',
   'Star', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast',
   'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire',
-  'Zip', 'Zone',
+  'Zone',
 ]
 
 // Words short enough that any three of them always land inside the length
@@ -308,15 +309,17 @@ export default function PasswordGenerator() {
           <h2 className="pw-sr-only">Your password</h2>
           {/* The dotted placeholder is pure filler while the first password is
               generated; the meta line below already says so in words. */}
-          <code
-            className={`pw-display__text ${advanced ? 'pw-display__text--dense' : ''}`}
-            aria-hidden={password === null || undefined}
-          >
-            {password ?? '·········'}
-          </code>
+          <PasswordText password={password} advanced={advanced} />
           <span className="pw-display__meta">
             {password ? `${password.length} characters` : 'Picking your words…'}
           </span>
+          {password && (
+            <span className="pw-display__hint">
+              {advanced
+                ? 'Case-sensitive · no spaces'
+                : 'Only the first letter is a capital · no spaces'}
+            </span>
+          )}
         </div>
 
         <div className="pw-actions">
