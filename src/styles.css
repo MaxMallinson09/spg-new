@@ -1,6 +1,15 @@
 @import "tailwindcss" source("../");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
+/* Bundled locally so the password font needs no third-party request. */
+@font-face {
+  font-family: "Atkinson Hyperlegible Mono";
+  src: url("/fonts/AtkinsonHyperlegibleMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --pw-bg: linear-gradient(160deg, #3a63e8 0%, #1f3fae 100%);
   --pw-surface: #ffffff;
@@ -229,8 +238,8 @@ summary:focus-visible,
 }
 
 .pw-display__text {
-  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas,
-    "Liberation Mono", monospace;
+  font-family: "Atkinson Hyperlegible Mono", ui-monospace, "SFMono-Regular",
+    Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 1.65rem;
   font-weight: 700;
   font-variant-ligatures: none;
@@ -248,6 +257,12 @@ summary:focus-visible,
 .pw-display__word {
   display: inline-block;
   white-space: nowrap;
+}
+
+/* Visual separation only: no space characters or generated text to copy. */
+.pw-display__part + .pw-display__part,
+.pw-display__word + .pw-display__word {
+  margin-inline-start: 0.16em;
 }
 
 .pw-display__meta {
