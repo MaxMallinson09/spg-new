@@ -35,8 +35,22 @@ test('simple passwords retain every character and contain no added spaces', () =
 
 test('wrap groups keep each word and following separator together', () => {
   const html = render('Book3honey4note*')
-  const chunks = [...html.matchAll(/<span[^>]*>([^<]+)<\/span>/g)].map((m) => m[1])
+  const chunks = [...html.matchAll(/<span class="pw-display__word">((?:<span class="pw-display__part">[^<]+<\/span>)+)<\/span>/g)]
+    .map((m) => text(m[1]))
   assert.deepEqual(chunks, ['Book3', 'honey4', 'note*'])
+})
+
+test('each word, digit and symbol is a separate part with no added text', () => {
+  for (const symbol of ['!', '*', '?']) {
+    const password = `Book0honey1note${symbol}`
+    const html = render(password)
+    const parts = [...html.matchAll(/<span class="pw-display__part">([^<]+)<\/span>/g)]
+      .map((m) => m[1])
+    assert.deepEqual(parts, ['Book', '0', 'honey', '1', 'note', symbol])
+    assert.equal(parts.join(''), password)
+    assert.equal(text(html), password)
+    assert.ok(!/[\s\u200b\u200c\u200d\ufeff]/u.test(text(html)))
+  }
 })
 
 test('advanced passwords preserve lookalike characters and their exact case', () => {
