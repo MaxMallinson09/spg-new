@@ -34,7 +34,7 @@ const WORDS = [
   'Album', 'Amber', 'Apple', 'Audio', 'Badge', 'Bench', 'Bike', 'Boat',
   'Book', 'Boot', 'Brick', 'Broom', 'Brush', 'Bus', 'Cable', 'Card',
   'Cave', 'Chair', 'Cloud', 'Coin', 'Cube',
-  'Cup', 'Desk', 'Door', 'Drop', 'Drum', 'Dust', 'Earth', 'Egg',
+  'Cup', 'Desk', 'Door', 'Drum', 'Dust', 'Earth', 'Egg',
   'Fan', 'Farm', 'Field', 'Film', 'Flag', 'Fruit',
   'Game', 'Gift', 'Glass', 'Glove', 'Gold', 'Green', 'Hat',
   'Hill', 'Home', 'Honey', 'House', 'Jar', 'Jet', 'Kit',
