@@ -40,7 +40,7 @@ const WORDS = [
   'Hill', 'Home', 'Honey', 'House', 'Jet', 'Kit',
   'Lake', 'Land', 'Lava', 'Leaf', 'Lemon', 'Log',
   'Mango', 'Map', 'Moon', 'Motor', 'Note', 'Ocean',
-  'Onion', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta', 'Pen',
+  'Onion', 'Paint', 'Paper', 'Park', 'Pasta', 'Pen',
   'Piano', 'Pink', 'Pizza', 'Plant', 'Plate', 'Pond',
   'Rice', 'River', 'Robot', 'Rock', 'Room',
   'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Soup',
