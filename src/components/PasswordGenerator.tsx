@@ -43,7 +43,7 @@ const WORDS = [
   'Onion', 'Oven', 'Paint', 'Panel', 'Paper', 'Park', 'Pasta', 'Pen',
   'Piano', 'Pink', 'Pizza', 'Plant', 'Plate', 'Pond',
   'Rice', 'River', 'Robot', 'Rock', 'Room',
-  'Ruby', 'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Sock', 'Soup',
+  'Sand', 'Shelf', 'Sink', 'Slide', 'Snow', 'Soup',
   'Star', 'Sugar', 'Table', 'Tag', 'Tent', 'Tile', 'Toast',
   'Town', 'Train', 'Tree', 'Video', 'Watch', 'Wire',
   'Zone',
