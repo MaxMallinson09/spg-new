@@ -1,12 +1,14 @@
 # Simple Password Generator
 
-A single-page password generator that produces simple, memorable, phone-friendly passwords. Every simple-mode password combines three easy-to-dictate words, two numbers, and one special character, and always lands between 12 and 16 characters long.
+A single-page password generator that produces simple, memorable, phone-friendly passwords. Simple mode combines two distinct words, one three-digit number and one special character, giving 10–14 characters in total.
 
 ## How it works
 
-Click "New password" to generate a fresh password in the format `WordWordWordNN!` (for example `MangoDesk27Rock!`). Words come from a curated 107-word list of neutral, familiar terms chosen to be easy to hear and write down over the phone. The list deliberately avoids animal names, exact homophones, silent-letter spellings, obscure words, awkward or offensive terms, and words that can sound embarrassing on a poor line.
+Click "New password" to generate either `Apple482book!` or `Applebook482!`: the number is randomly placed between the words or after both words, with the symbol always last. Only the first letter is capitalised. Leading zeros are preserved, so a number such as `042` has three digits.
 
-Randomness comes from the browser's cryptographic RNG (`crypto.getRandomValues`). The current simple-mode keyspace contains 993,175,200 valid combinations (about 29.9 bits) after the 12–16 character length rule is applied.
+The curated 91-word vocabulary is unchanged. Small visual gaps separate both words, the number and symbol using the approved Atkinson Hyperlegible Mono font; these gaps are not space characters, and Copy uses the exact joined password.
+
+All choices use the browser's cryptographic RNG (`crypto.getRandomValues`) with rejection sampling. There are 91 × 90 distinct ordered word pairs, 1,000 number strings, two number positions and three symbols: **49,140,000 possible passwords (~25.55 bits)**. Three digits were explicitly requested for v3.3.0. This gives ten times fewer combinations than the proposed four-digit format (~28.87 bits), and fewer than the preceding three-word release (~27.03 bits). Advanced mode remains available for stronger random passwords, particularly for long-lived credentials.
 
 The site is private: every request passes through an Auth0 sign-in check before any page or script is served.
 
@@ -29,7 +31,9 @@ The dev server runs at `http://localhost:3000`. Use `netlify dev` (port 8888) to
 
 ## Project structure
 
-- `src/components/PasswordGenerator.tsx` — password generation logic and UI
+- `src/components/PasswordGenerator.tsx` — generator UI
+- `src/lib/passwords.ts` — cryptographic password generation and vocabulary
+- `src/components/PasswordText.tsx` — visual grouping without space characters
 - `src/routes/index.tsx` — home page, renders the generator
 - `src/styles.css` — global styles and theme
 - `netlify/edge-functions/auth.ts` — Auth0 login/callback/logout and the session gate
