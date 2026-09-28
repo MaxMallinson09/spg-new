@@ -1,14 +1,14 @@
 # Simple Password Generator
 
-A single-page password generator that produces simple, memorable, phone-friendly passwords. Simple mode combines two distinct words, one four-digit number and one special character, giving 11–15 characters in total.
+A single-page password generator that produces simple, memorable, phone-friendly passwords. Simple mode combines two distinct words, one three-digit number and one special character, giving 10–14 characters in total.
 
 ## How it works
 
-Click "New password" to generate either `Apple4826book!` or `Applebook4826!`: the number is randomly placed between the words or after both words, with the symbol always last. Only the first letter is capitalised. Leading zeros are preserved, so a number such as `0042` has four digits.
+Click "New password" to generate either `Apple482book!` or `Applebook482!`: the number is randomly placed between the words or after both words, with the symbol always last. Only the first letter is capitalised. Leading zeros are preserved, so a number such as `042` has three digits.
 
 The curated 91-word vocabulary is unchanged. Small visual gaps separate both words, the number and symbol using the approved Atkinson Hyperlegible Mono font; these gaps are not space characters, and Copy uses the exact joined password.
 
-All choices use the browser's cryptographic RNG (`crypto.getRandomValues`) with rejection sampling. There are 91 × 90 distinct ordered word pairs, 10,000 number strings, two number positions and three symbols: **491,400,000 possible passwords (~28.87 bits)**. Four digits compensate for the removed third word; keeping only two digits would reduce the pool to ~22.23 bits. This is a relative improvement over the previous simple format (~27.03 bits), not a claim of high-entropy strength. Advanced mode remains available for stronger random passwords, particularly for long-lived credentials.
+All choices use the browser's cryptographic RNG (`crypto.getRandomValues`) with rejection sampling. There are 91 × 90 distinct ordered word pairs, 1,000 number strings, two number positions and three symbols: **49,140,000 possible passwords (~25.55 bits)**. Three digits were explicitly requested for v3.3.0. This gives ten times fewer combinations than the proposed four-digit format (~28.87 bits), and fewer than the preceding three-word release (~27.03 bits). Advanced mode remains available for stronger random passwords, particularly for long-lived credentials.
 
 The site is private: every request passes through an Auth0 sign-in check before any page or script is served.
 

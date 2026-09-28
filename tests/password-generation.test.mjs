@@ -34,13 +34,13 @@ function checkSimple(result) {
   assert.equal(result.password, parts.join(''))
   assert.match(parts[0], /^[A-Z][a-z]{2,4}$/)
   assert.match(parts[3], /^[!*?]$/)
-  const middleNumber = /^\d{4}$/.test(parts[1])
+  const middleNumber = /^\d{3}$/.test(parts[1])
   const secondWord = parts[middleNumber ? 2 : 1]
   assert.match(secondWord, /^[a-z]{3,5}$/)
-  assert.match(parts[middleNumber ? 1 : 2], /^\d{4}$/)
+  assert.match(parts[middleNumber ? 1 : 2], /^\d{3}$/)
   assert.notEqual(parts[0].toLowerCase(), secondWord)
   assert.ok(allowedWords.has(parts[0].toLowerCase()) && allowedWords.has(secondWord))
-  assert.ok(result.password.length >= 11 && result.password.length <= 15)
+  assert.ok(result.password.length >= 10 && result.password.length <= 14)
   assert.ok(!/\s/.test(result.password))
   return middleNumber
 }
@@ -50,25 +50,25 @@ test('all ordered word pairs and both number positions are distinct and valid', 
   for (let first = 0; first < words.length; first++) {
     for (let draw = 0; draw < words.length - 1; draw++) {
       for (const position of [0, 1]) {
-        const result = loadGenerator(scripted([first, draw, 4826, position, 0])).generateSimplePassword()
+        const result = loadGenerator(scripted([first, draw, 482, position, 0])).generateSimplePassword()
         assert.equal(checkSimple(result), position === 0)
         seen.add(result.password)
       }
     }
   }
   assert.equal(seen.size, words.length * (words.length - 1) * 2)
-  // All 10,000 number strings and three symbols remain available. Ensure the
-  // new format retains at least the previous release's 137,493,000 outcomes.
-  assert.ok(seen.size * 10000 * 3 >= 137493000)
+  // The requested three-digit format provides 1,000 numbers and three symbols.
+  // Record the reduced keyspace explicitly; it no longer meets the old baseline.
+  assert.equal(seen.size * 1000 * 3, 49140000)
 })
 
 test('rejection sampling and leading zeros work with the number at the end', () => {
   const result = loadGenerator(scripted([0xffffffff, 0, 0, 0xffffffff, 7, 1, 0])).generateSimplePassword()
-  assert.equal(result.password, 'Albumamber0007!')
-  assert.deepEqual(Array.from(result.parts), ['Album', 'amber', '0007', '!'])
+  assert.equal(result.password, 'Albumamber007!')
+  assert.deepEqual(Array.from(result.parts), ['Album', 'amber', '007', '!'])
 })
 
-test('cryptographic samples preserve two words, four digits and both layouts', () => {
+test('cryptographic samples preserve two words, three digits and both layouts', () => {
   const generator = loadGenerator()
   const layouts = new Set()
   for (let i = 0; i < 10000; i++) layouts.add(checkSimple(generator.generateSimplePassword()))

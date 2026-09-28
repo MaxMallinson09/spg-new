@@ -73,8 +73,8 @@ test('unrecognised formats are displayed intact rather than losing characters', 
 
 test('two-word metadata preserves gaps for both number positions without spaces', () => {
   for (const parts of [
-    ['Apple', '0042', 'book', '!'],
-    ['Apple', 'book', '0042', '!'],
+    ['Apple', '042', 'book', '!'],
+    ['Apple', 'book', '042', '!'],
   ]) {
     const password = parts.join('')
     const html = render(password, false, parts)
@@ -87,7 +87,7 @@ test('two-word metadata preserves gaps for both number positions without spaces'
 })
 
 test('stale metadata cannot change the password and advanced mode ignores parts', () => {
-  assert.equal(text(render('Applebook0042!', false, ['wrong', 'parts'])), 'Applebook0042!')
+  assert.equal(text(render('Applebook042!', false, ['wrong', 'parts'])), 'Applebook042!')
   const html = render('Il1O0!?*AbCdEfGh23456789', true, ['wrong', 'parts'])
   assert.equal(text(html), 'Il1O0!?*AbCdEfGh23456789')
   assert.ok(!html.includes('pw-display__word'))

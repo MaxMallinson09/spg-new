@@ -86,7 +86,7 @@ export default function PasswordGenerator() {
         <p className="pw-subtitle">
           {advanced
             ? 'Fully random characters at whatever length you need.'
-            : 'Two words, a four-digit number, one symbol — easy to read, easy to remember.'}
+            : 'Two words, a three-digit number, one symbol — easy to read, easy to remember.'}
         </p>
 
         <div className="pw-mode">
@@ -208,10 +208,10 @@ export default function PasswordGenerator() {
             </>
           ) : (
             <>
-              <li>11&ndash;15 characters long</li>
+              <li>10&ndash;14 characters long</li>
               <li>Two easy words that are simple to say out loud</li>
               <li>Only the first letter is capitalised</li>
-              <li>Four digits between the words or after both words</li>
+              <li>Three digits between the words or after both words</li>
               <li>One special character</li>
             </>
           )}

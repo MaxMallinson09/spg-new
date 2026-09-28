@@ -20,8 +20,8 @@
 // 'cabin') were removed: a word the reader would never use themselves is a
 // word they hesitate over when dictating it.
 //
-// Keep every word to 3-5 characters. Two words, four digits and a symbol
-// then fit 11-15 characters without rejecting or truncating any combination.
+// Keep every word to 3-5 characters. Two words, three digits and a symbol
+// then fit 10-14 characters without rejecting or truncating any combination.
 const WORDS = [
   'Album', 'Amber', 'Apple', 'Audio', 'Badge', 'Bench', 'Bike', 'Boat',
   'Book', 'Boot', 'Brick', 'Brush', 'Bus', 'Cable', 'Card',
@@ -94,7 +94,7 @@ export type GeneratedPassword = {
   parts?: string[]
 }
 
-/** Two distinct words, four random digits in either position, then a symbol. */
+/** Two distinct words, three random digits in either position, then a symbol. */
 export function generateSimplePassword(): GeneratedPassword {
   const firstIndex = randomInt(WORDS.length)
   // Draw uniformly from the remaining words without a retry loop.
@@ -102,8 +102,8 @@ export function generateSimplePassword(): GeneratedPassword {
   const secondIndex = secondDraw >= firstIndex ? secondDraw + 1 : secondDraw
   const firstWord = WORDS[firstIndex]
   const secondWord = WORDS[secondIndex].toLowerCase()
-  // Leading zeros count: all 10,000 four-digit strings are equally likely.
-  const number = String(randomInt(10000)).padStart(4, '0')
+  // Leading zeros count: all 1,000 three-digit strings are equally likely.
+  const number = String(randomInt(1000)).padStart(3, '0')
   const numberBetweenWords = randomInt(2) === 0
   const parts = numberBetweenWords
     ? [firstWord, number, secondWord, randomItem(SPECIAL_CHARS)]

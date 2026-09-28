@@ -49,14 +49,14 @@ A single-page password generator that produces simple, child-friendly passwords.
 
 Implemented in `src/lib/passwords.ts`; UI in `src/components/PasswordGenerator.tsx`:
 
-- Format: two distinct words, a uniformly random four-digit string placed between them or after both words, then one symbol (e.g. `Apple4826book!` or `Applebook4826!`). Only the first letter is capitalised. Retain leading zeros.
+- Format: two distinct words, a uniformly random three-digit string placed between them or after both words, then one symbol (e.g. `Apple482book!` or `Applebook482!`). Only the first letter is capitalised. Retain leading zeros.
 - **All randomness must come from `crypto.getRandomValues()` via the `randomInt()` helper.** Never use `Math.random()` here — it is a predictable PRNG, and recovering its state from one shared password would expose the others generated in the same session. `randomInt()` uses rejection sampling, so do not replace it with a plain modulo.
 - Words come from `WORDS`, a curated list of neutral, familiar 3–5 character terms that are suitable for professional phone use. New entries need a phone-readability review, not just a content-safety review.
 - **No animal names.** All 29 of them (`Pig`, `Koala`, `Bunny`, `Tiger`, …) were removed at the site owner's request — animal words are simply not wanted here. Top the list up with neutral food, nature, object, place, or simple technical words instead.
 - **Words must read the same on both sides of the Atlantic.** American-only terms (`candy`, `truck`, `corn`, `taco`, `bagel`, `wagon`, `cabin`) were removed: a word the reader would never use themselves is a word they hesitate over when dictating it. Prefer internationally neutral wording.
 - **Words must be unambiguous when read aloud over the phone.** Exclude exact homophones (`ball`/`bawl`, `bean`/`been`, `ice`/`eyes`, `ring`/`wring`, `rose`/`rows`, `shoe`/`shoo`, `wave`/`waive`), silent-letter spellings, and obscure words. Also exclude terms such as `beach`, `peach`, `ship`, and `fork` when a poor line could turn them into an embarrassing or unprofessional-sounding word. Prefer a word a stranger can write down first time over a word that merely looks friendly.
 - **Keep the list professionally neutral.** Avoid profanity, slurs, sexual or bodily terms, insults, crime/drug/violence terms, human descriptors with social baggage, slang/innuendo, and childish or patronising wording.
-- **Every word must be 3–5 characters.** Two words plus four digits and one symbol give 11–15 characters by construction, so no length rejection or short-word fallback is needed.
+- **Every word must be 3–5 characters.** Two words plus three digits and one symbol give 10–14 characters by construction, so no length rejection or short-word fallback is needed.
 - Special characters are `!`, `*`, `?` in both modes. `@`, `$`, `%`, `&` and `#` remain excluded.
 - Draw the second word uniformly from the remaining indices; never allow the same word twice.
 - `generateSimplePassword()` returns the raw `password` plus ordered `parts` for display. Keep word boundaries in this metadata even when the words are adjacent; do not infer them from the concatenated string.
@@ -65,9 +65,9 @@ Implemented in `src/lib/passwords.ts`; UI in `src/components/PasswordGenerator.t
 
 ### Keyspace
 
-The current list has **91 words**. All **8,190 ordered distinct word pairs** are valid and yield unique strings in each layout. With 10,000 four-digit strings, two number positions and three symbols, this gives **491,400,000 combinations (~28.87 bits)**. The tests enumerate every pair and both positions to check for collisions. Recalculate whenever the vocabulary or format changes.
+The current list has **91 words**. All **8,190 ordered distinct word pairs** are valid and yield unique strings in each layout. With 1,000 three-digit strings, two number positions and three symbols, this gives **49,140,000 combinations (~25.55 bits)**. The tests enumerate every pair and both positions to check for collisions. Recalculate whenever the vocabulary or format changes.
 
-The preceding three-word release offered 137,493,000 combinations (~27.03 bits) after its length constraint. Four digits preserve that baseline when moving to two words; two digits would give only 4,914,000 combinations (~22.23 bits). Do not shorten the numeric portion without explicitly accounting for the security loss. This comparison does not make simple mode suitable for every threat model; retain Advanced mode for stronger random passwords.
+Max explicitly requested three digits and version 3.3.0. This reduces the proposed four-digit keyspace (491,400,000 combinations, ~28.87 bits) tenfold. It also falls below the preceding three-word release (137,493,000 combinations, ~27.03 bits). Document this usability/security tradeoff; do not claim that three digits preserve the previous strength. Advanced mode remains available for stronger random passwords.
 
 ## Advanced Mode
 
