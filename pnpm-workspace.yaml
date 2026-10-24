@@ -1,0 +1,4 @@
+# The Netlify development dependency pins an affected multipart parser.
+# Keep this same-major patch override until its parent updates the pin.
+overrides:
+  '@fastify/busboy@<3.2.4': 3.2.4

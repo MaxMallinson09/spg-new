@@ -130,7 +130,7 @@ export function generatePassword(): string {
 export function generateAdvancedPassword(length: number): string {
   const size = Math.min(
     ADVANCED_MAX_LENGTH,
-    Math.max(ADVANCED_MIN_LENGTH, Math.floor(length)),
+    Math.max(ADVANCED_MIN_LENGTH, Number.isFinite(length) ? Math.floor(length) : ADVANCED_DEFAULT_LENGTH),
   )
 
   const chars = [

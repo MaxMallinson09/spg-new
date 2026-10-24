@@ -74,7 +74,7 @@ Max explicitly requested three digits and version 3.3.0. This reduces the propos
 The toggle in `PasswordGenerator` switches from the word-based generator to `generateAdvancedPassword(length)`, for people who need a password they will paste rather than say.
 
 - Alphabet: A–Z, a–z, 0–9 and the **same** three symbols as simple mode (`! * ?`). Widening the symbol set here would make the two modes disagree about what a "special character" is for no real gain.
-- Length is chosen by the user with a range slider, bounded by `ADVANCED_MIN_LENGTH` (10) and `ADVANCED_MAX_LENGTH` (24), defaulting to 16. `generateAdvancedPassword()` clamps its argument as well, so the bounds hold even if the slider is bypassed. The upper bound is deliberately modest: 48 characters was more than anyone here pastes into a real form, and it made the displayed password hard to read.
+- Length is chosen by the user with a range slider, bounded by `ADVANCED_MIN_LENGTH` (10) and `ADVANCED_MAX_LENGTH` (24), defaulting to 16. `generateAdvancedPassword()` clamps finite arguments and defaults invalid/non-finite inputs to 16, so bad input cannot silently produce a four-character password. The upper bound is deliberately modest: 48 characters was more than anyone here pastes into a real form, and it made the displayed password hard to read.
 - One character of each class (upper, lower, digit, symbol) is seeded first so the result always satisfies site password rules, then the whole string is shuffled with a CSPRNG-driven Fisher-Yates pass. **Do not skip the shuffle**: without it the symbol always sits at a known index.
 - All randomness goes through the same `randomInt()` helper — the `Math.random()` prohibition above applies here too.
 - Entropy is at most `6.02 × length` bits (65-character alphabet), i.e. ~60 bits at the minimum, ~96 at the default and ~145 at the maximum. The seeded-and-shuffled generator is not uniform over all alphabet strings, so these are upper bounds rather than exact entropy values.
@@ -100,6 +100,11 @@ Sign-in is handled entirely by `netlify/edge-functions/auth.ts`, which runs on e
 - Flow: `/auth/login` starts Authorization Code + PKCE → `/auth/callback` verifies `state`, exchanges the code, and stores the Auth0 ID token in an `HttpOnly` cookie → every later request re-verifies that token's RS256 signature against the tenant JWKS.
 - No client secret is used or needed; the token endpoint is called with PKCE as a public client.
 - Client code never sees the token. `UserMenu` reads display fields from `/auth/me`.
+- Return paths must remain root-relative after URL normalization; reject normalized paths starting with `//`.
+- Malformed tokens fail closed. Require a subject, finite expiry/issued-at values, the expected issuer/audience, and matching authorized party when applicable; still verify every accepted RS256 signature.
+- Signing-key fetches share an in-flight promise and have a 30-second per-isolate cooldown, including failures. Never reuse keys beyond the 10-minute TTL. Key rotation can take up to the cooldown to become visible.
+- Auth0 fetches time out after five seconds. Protected responses use private/no-store cache headers. Keep `onError: 'fail'` on the auth gate.
+- Run `pnpm audit` after dependency changes. The multipart-parser override lives in `pnpm-workspace.yaml`; do not remove it while an upstream dependency pins an affected version.
 - `AUTH0_DOMAIN` and `AUTH0_CLIENT_ID` are read at runtime via `Netlify.env.get()` and are never inlined into the bundle.
 
 **Auth0 dashboard requirements** — the site returns 401/redirect loops without these:
