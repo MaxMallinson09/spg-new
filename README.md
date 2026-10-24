@@ -37,3 +37,11 @@ The dev server runs at `http://localhost:3000`. Use `netlify dev` (port 8888) to
 - `src/routes/index.tsx` — home page, renders the generator
 - `src/styles.css` — global styles and theme
 - `netlify/edge-functions/auth.ts` — Auth0 login/callback/logout and the session gate
+
+## Security maintenance
+
+Version 3.3.1 updates vulnerable dependencies and hardens the Auth0 gate. See [the security review](SECURITY-REVIEW.md) for findings, validation and remaining limitations.
+
+Run `pnpm test`, `pnpm build`, `pnpm exec tsc --noEmit` and `pnpm audit` when changing authentication or dependencies. Build before type-checking a fresh checkout so TanStack generates its route types. Install from the committed lockfile with `pnpm install --frozen-lockfile`.
+
+Simple mode has only about 25.55 bits of entropy and is unsuitable for passwords that must resist offline guessing. For long-term credentials, use Advanced mode at its 16-character default or longer. Temporary helpdesk passwords need short expiry, a required change at first sign-in and account-level protections enforced by the system receiving them; this generator cannot enforce those policies.

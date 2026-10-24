@@ -87,3 +87,12 @@ test('advanced mode still covers all supported lengths and character classes', (
     }
   }
 })
+
+test('invalid advanced lengths cannot silently produce four-character passwords', () => {
+  const generator = loadGenerator()
+  for (const requested of [NaN, Infinity, -Infinity, undefined]) {
+    const password = generator.generateAdvancedPassword(requested)
+    assert.equal(password.length, 16)
+    for (const pattern of [/[A-Z]/, /[a-z]/, /[0-9]/, /[!*?]/]) assert.match(password, pattern)
+  }
+})

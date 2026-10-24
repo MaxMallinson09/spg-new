@@ -28,11 +28,16 @@ const SERVER_FN_PATH = '/_serverFn'
 
 const FLOW_COOKIE_MAX_AGE = 600 // 10 minutes to complete a login round trip
 const JWKS_TTL_MS = 10 * 60 * 1000
+const JWKS_REFRESH_COOLDOWN_MS = 30 * 1000
+const AUTH_FETCH_TIMEOUT_MS = 5000
+const MAX_TOKEN_LENGTH = 16 * 1024
 
 type Jwk = { kid: string; kty: string; n: string; e: string; alg?: string; use?: string }
 
 // Per-isolate cache. A declaration only; nothing executes at module scope.
 let jwksCache: { domain: string; fetchedAt: number; keys: Jwk[] } | null = null
+let jwksPending: { domain: string; promise: Promise<Jwk[]> } | null = null
+let jwksLastAttempt: { domain: string; at: number } | null = null
 
 function base64UrlDecode(input: string): Uint8Array<ArrayBuffer> {
   const padding = input.length % 4 === 0 ? '' : '='.repeat(4 - (input.length % 4))
@@ -59,25 +64,50 @@ async function pkceChallenge(verifier: string): Promise<string> {
   return base64UrlEncode(new Uint8Array(digest))
 }
 
+function cachedKeys(domain: string): Jwk[] {
+  return jwksCache?.domain === domain && Date.now() - jwksCache.fetchedAt < JWKS_TTL_MS
+    ? jwksCache.keys : []
+}
+
 async function fetchJwks(domain: string): Promise<Jwk[]> {
-  const response = await fetch(`https://${domain}/.well-known/jwks.json`)
-  if (!response.ok) return []
-  const body = (await response.json()) as { keys?: Jwk[] }
-  const keys = body.keys ?? []
-  jwksCache = { domain, fetchedAt: Date.now(), keys }
-  return keys
+  // Coalesce concurrent requests and limit refreshes for attacker-chosen kids,
+  // including failed fetches. This is per isolate, not a global rate limiter.
+  if (jwksPending?.domain === domain) return jwksPending.promise
+  if (jwksLastAttempt?.domain === domain && Date.now() - jwksLastAttempt.at < JWKS_REFRESH_COOLDOWN_MS) {
+    return cachedKeys(domain)
+  }
+  jwksLastAttempt = { domain, at: Date.now() }
+  const promise = (async () => {
+    try {
+      const response = await fetch(`https://${domain}/.well-known/jwks.json`, {
+        signal: AbortSignal.timeout(AUTH_FETCH_TIMEOUT_MS),
+      })
+      if (!response.ok) return cachedKeys(domain)
+      const body = await response.json()
+      if (!body || !Array.isArray(body.keys)) return cachedKeys(domain)
+      const keys: Jwk[] = body.keys.filter((key: Jwk | null) => key &&
+        typeof key.kid === 'string' && key.kty === 'RSA' &&
+        typeof key.n === 'string' && typeof key.e === 'string' &&
+        (key.alg === undefined || key.alg === 'RS256') &&
+        (key.use === undefined || key.use === 'sig'))
+      jwksCache = { domain, fetchedAt: Date.now(), keys }
+      return keys
+    } catch {
+      // A still-fresh cache can survive an upstream outage; expired keys cannot.
+      return cachedKeys(domain)
+    }
+  })()
+  jwksPending = { domain, promise }
+  try {
+    return await promise
+  } finally {
+    if (jwksPending?.promise === promise) jwksPending = null
+  }
 }
 
 async function getSigningKey(domain: string, kid: string): Promise<CryptoKey | null> {
-  const fresh = jwksCache && jwksCache.domain === domain && Date.now() - jwksCache.fetchedAt < JWKS_TTL_MS
-  let keys = fresh ? jwksCache!.keys : await fetchJwks(domain)
-  let jwk = keys.find((key) => key.kid === kid)
-  // An unknown kid usually means the tenant rotated its signing keys, so take
-  // one more look before rejecting the token.
-  if (!jwk && fresh) {
-    keys = await fetchJwks(domain)
-    jwk = keys.find((key) => key.kid === kid)
-  }
+  let jwk = cachedKeys(domain).find((key) => key.kid === kid)
+  if (!jwk) jwk = (await fetchJwks(domain)).find((key) => key.kid === kid)
   if (!jwk) return null
   return crypto.subtle.importKey(
     'jwk',
@@ -96,47 +126,49 @@ type Claims = {
   picture?: string
   exp?: number
   iat?: number
+  nbf?: number
+  azp?: string
   iss?: string
   aud?: string | string[]
 }
 
 async function verifyIdToken(token: string, domain: string, clientId: string): Promise<Claims | null> {
-  const parts = token.split('.')
-  if (parts.length !== 3) return null
-  const [encodedHeader, encodedPayload, encodedSignature] = parts
-
-  let header: { alg?: string; kid?: string }
-  let claims: Claims
   try {
-    header = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedHeader)))
-    claims = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedPayload)))
+    if (typeof token !== 'string' || token.length > MAX_TOKEN_LENGTH) return null
+    const parts = token.split('.')
+    if (parts.length !== 3 || parts.some((part) => !/^[A-Za-z0-9_-]+$/.test(part))) return null
+    const [encodedHeader, encodedPayload, encodedSignature] = parts
+    const header = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedHeader)))
+    const claims: Claims = JSON.parse(new TextDecoder().decode(base64UrlDecode(encodedPayload)))
+    if (!header || typeof header !== 'object' || Array.isArray(header) ||
+        !claims || typeof claims !== 'object' || Array.isArray(claims)) return null
+
+    // Reject malformed or irrelevant tokens before any network or RSA work.
+    // The signature must still verify before any claim is trusted.
+    if (header.alg !== 'RS256' || typeof header.kid !== 'string' || !header.kid || header.kid.length > 256) return null
+    const now = Math.floor(Date.now() / 1000)
+    if (typeof claims.sub !== 'string' || !claims.sub) return null
+    if (typeof claims.exp !== 'number' || !Number.isFinite(claims.exp) || claims.exp <= now) return null
+    if (typeof claims.iat !== 'number' || !Number.isFinite(claims.iat) || claims.iat > now + 300) return null
+    if (claims.nbf !== undefined && (typeof claims.nbf !== 'number' || !Number.isFinite(claims.nbf) || claims.nbf > now + 300)) return null
+    if (claims.iss !== `https://${domain}/`) return null
+    const audience = Array.isArray(claims.aud) ? claims.aud : [claims.aud]
+    if (!audience.every((item) => typeof item === 'string') || !audience.includes(clientId)) return null
+    if ((audience.length > 1 || claims.azp !== undefined) && claims.azp !== clientId) return null
+
+    const signature = base64UrlDecode(encodedSignature)
+    const key = await getSigningKey(domain, header.kid)
+    if (!key) return null
+    const valid = await crypto.subtle.verify(
+      'RSASSA-PKCS1-v1_5', key, signature,
+      new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`),
+    )
+    return valid ? claims : null
   } catch {
+    // Invalid encodings, JSON shapes, keys and signatures are unauthenticated
+    // requests, never unhandled edge-function failures.
     return null
   }
-
-  // Pin the algorithm. Accepting whatever the header asks for is what makes
-  // "alg: none" and RS256-to-HS256 confusion work.
-  if (header.alg !== 'RS256' || !header.kid) return null
-
-  const key = await getSigningKey(domain, header.kid)
-  if (!key) return null
-
-  const valid = await crypto.subtle.verify(
-    'RSASSA-PKCS1-v1_5',
-    key,
-    base64UrlDecode(encodedSignature),
-    new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`),
-  )
-  if (!valid) return null
-
-  const now = Math.floor(Date.now() / 1000)
-  if (typeof claims.exp !== 'number' || claims.exp <= now) return null
-  if (typeof claims.iat === 'number' && claims.iat > now + 300) return null
-  if (claims.iss !== `https://${domain}/`) return null
-  const audience = Array.isArray(claims.aud) ? claims.aud : [claims.aud]
-  if (!audience.includes(clientId)) return null
-
-  return claims
 }
 
 /**
@@ -149,7 +181,9 @@ function safeReturnPath(value: string | null | undefined, origin: string): strin
   if (!value || !value.startsWith('/')) return '/'
   try {
     const target = new URL(value, origin)
-    if (target.origin !== origin) return '/'
+    // Normalization can turn /a/..//host into //host. Reusing that as a
+    // Location would be an external redirect despite target.origin matching.
+    if (target.origin !== origin || target.pathname.startsWith('//')) return '/'
     return `${target.pathname}${target.search}${target.hash}`
   } catch {
     return '/'
@@ -237,19 +271,28 @@ export default async (request: Request, context: Context) => {
       return redirect(LOGIN_PATH)
     }
 
-    const tokenResponse = await fetch(`https://${domain}/oauth/token`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: clientId,
-        code,
-        redirect_uri: redirectUri,
-        code_verifier: verifier,
-      }),
-    })
-
-    if (!tokenResponse.ok) {
+    let idToken: string | null = null
+    try {
+      const tokenResponse = await fetch(`https://${domain}/oauth/token`, {
+        method: 'POST',
+        signal: AbortSignal.timeout(AUTH_FETCH_TIMEOUT_MS),
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: clientId,
+          code,
+          redirect_uri: redirectUri,
+          code_verifier: verifier,
+        }),
+      })
+      if (tokenResponse.ok) {
+        const tokens = await tokenResponse.json()
+        if (typeof tokens?.id_token === 'string') idToken = tokens.id_token
+      }
+    } catch {
+      // Upstream outages and malformed replies must not leave a partial login.
+    }
+    if (!idToken) {
       clearFlowCookies(context, secure)
       return new Response('Sign-in failed: could not exchange the authorization code.', {
         status: 401,
@@ -257,8 +300,6 @@ export default async (request: Request, context: Context) => {
       })
     }
 
-    const tokens = (await tokenResponse.json()) as { id_token?: string }
-    const idToken = tokens.id_token
     const claims = idToken ? await verifyIdToken(idToken, domain, clientId) : null
     if (!idToken || !claims) {
       clearFlowCookies(context, secure)
@@ -334,10 +375,16 @@ export default async (request: Request, context: Context) => {
     return redirect(target)
   }
 
-  // Authenticated: hand off to the static assets untouched.
-  return
+  // Recheck authentication on subsequent visits instead of allowing a cached
+  // protected document or asset to be reused after logout.
+  const response = await context.next()
+  response.headers.set('cache-control', 'private, no-store')
+  response.headers.set('cdn-cache-control', 'no-store')
+  response.headers.set('netlify-cdn-cache-control', 'no-store')
+  return response
 }
 
 export const config: Config = {
   path: '/*',
+  onError: 'fail',
 }
