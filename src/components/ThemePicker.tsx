@@ -8,11 +8,14 @@ import {
 
 type FontSize = 'normal' | 'large' | 'extra-large'
 type ContrastPreference = 'standard' | 'high'
+type ChristmasContrastMode = 'light' | 'dark'
+type ContrastOption = ContrastPreference | 'high-dark'
 type MotionPreference = 'standard' | 'reduced'
 
 const THEME_STORAGE_KEY = 'spg-theme'
 const FONT_SIZE_STORAGE_KEY = 'spg-font-size'
 const CONTRAST_STORAGE_KEY = 'spg-contrast'
+const CHRISTMAS_CONTRAST_STORAGE_KEY = 'spg-christmas-contrast-mode'
 const MOTION_STORAGE_KEY = 'spg-motion'
 
 function isFontSize(value: string | null): value is FontSize {
@@ -42,6 +45,10 @@ function applyFontSize(fontSize: FontSize) {
 
 function applyContrast(contrast: ContrastPreference) {
   document.documentElement.dataset.contrast = contrast
+}
+
+function applyChristmasContrastMode(mode: ChristmasContrastMode) {
+  document.documentElement.dataset.christmasContrastMode = mode
 }
 
 function applyMotion(motion: MotionPreference) {
@@ -111,6 +118,7 @@ export default function ThemePicker() {
   const [theme, setTheme] = useState<StandardThemeName>('original')
   const [fontSize, setFontSize] = useState<FontSize>('normal')
   const [contrast, setContrast] = useState<ContrastPreference>('standard')
+  const [christmasContrastMode, setChristmasContrastMode] = useState<ChristmasContrastMode>('light')
   const [motion, setMotion] = useState<MotionPreference>('standard')
   const [christmasSeason, setChristmasSeason] = useState(false)
   const [preferencesLoaded, setPreferencesLoaded] = useState(false)
@@ -124,12 +132,14 @@ export default function ThemePicker() {
     let nextTheme: StandardThemeName = 'original'
     let nextFontSize: FontSize = 'normal'
     let nextContrast: ContrastPreference = 'standard'
+    let nextChristmasContrastMode: ChristmasContrastMode = 'light'
     let nextMotion: MotionPreference = 'standard'
 
     try {
       const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
       const savedFontSize = window.localStorage.getItem(FONT_SIZE_STORAGE_KEY)
       const savedContrast = window.localStorage.getItem(CONTRAST_STORAGE_KEY)
+      const savedChristmasContrastMode = window.localStorage.getItem(CHRISTMAS_CONTRAST_STORAGE_KEY)
       const savedMotion = window.localStorage.getItem(MOTION_STORAGE_KEY)
 
       // Older releases stored "system" for these settings. It is deliberately
@@ -137,6 +147,9 @@ export default function ThemePicker() {
       if (isThemeName(savedTheme)) nextTheme = savedTheme
       if (isFontSize(savedFontSize)) nextFontSize = savedFontSize
       if (isContrastPreference(savedContrast)) nextContrast = savedContrast
+      if (savedChristmasContrastMode === 'light' || savedChristmasContrastMode === 'dark') {
+        nextChristmasContrastMode = savedChristmasContrastMode
+      }
       if (isMotionPreference(savedMotion)) nextMotion = savedMotion
     } catch {
       // Privacy modes may deny localStorage; the defaults remain fully usable.
@@ -145,9 +158,11 @@ export default function ThemePicker() {
     setTheme(nextTheme)
     setFontSize(nextFontSize)
     setContrast(nextContrast)
+    setChristmasContrastMode(nextChristmasContrastMode)
     setMotion(nextMotion)
 
     applyFontSize(nextFontSize)
+    applyChristmasContrastMode(nextChristmasContrastMode)
     applyContrast(nextContrast)
     applyMotion(nextMotion)
     setPreferencesLoaded(true)
@@ -199,11 +214,19 @@ export default function ThemePicker() {
     persist(FONT_SIZE_STORAGE_KEY, next)
   }
 
-  const selectContrast = (next: ContrastPreference) => {
-    // Resolve the visible palette without overwriting the saved normal theme.
-    setContrast(next)
-    applyContrast(next)
-    persist(CONTRAST_STORAGE_KEY, next)
+  const selectContrast = (next: ContrastOption) => {
+    // The seasonal light/dark choice is separate from the normal theme. Keep
+    // the existing high-contrast flag so snow and other decoration stay off.
+    const nextContrast: ContrastPreference = next === 'standard' ? 'standard' : 'high'
+    if (christmasSeason && nextContrast === 'high') {
+      const nextMode = next === 'high-dark' ? 'dark' : 'light'
+      setChristmasContrastMode(nextMode)
+      applyChristmasContrastMode(nextMode)
+      persist(CHRISTMAS_CONTRAST_STORAGE_KEY, nextMode)
+    }
+    setContrast(nextContrast)
+    applyContrast(nextContrast)
+    persist(CONTRAST_STORAGE_KEY, nextContrast)
   }
 
   const selectMotion = (next: MotionPreference) => {
@@ -215,15 +238,18 @@ export default function ThemePicker() {
   const resetAccessibility = () => {
     setFontSize('normal')
     setContrast('standard')
+    setChristmasContrastMode('light')
     setMotion('standard')
 
     applyFontSize('normal')
     applyContrast('standard')
+    applyChristmasContrastMode('light')
     applyMotion('standard')
 
     try {
       window.localStorage.removeItem(FONT_SIZE_STORAGE_KEY)
       window.localStorage.removeItem(CONTRAST_STORAGE_KEY)
+      window.localStorage.removeItem(CHRISTMAS_CONTRAST_STORAGE_KEY)
       window.localStorage.removeItem(MOTION_STORAGE_KEY)
     } catch {
       // Reset still applies to the current page if storage is unavailable.
@@ -239,6 +265,8 @@ export default function ThemePicker() {
     ? CHRISTMAS_THEME
     : THEMES.find((item) => item.id === displayedTheme) ?? THEMES[0]
   const highContrast = contrast === 'high'
+  const contrastOption: ContrastOption = christmasSeason && highContrast && christmasContrastMode === 'dark'
+    ? 'high-dark' : contrast
 
   return (
     <>
@@ -259,7 +287,7 @@ export default function ThemePicker() {
             <strong>{christmasSeason ? 'Christmas theme' : 'Choose a theme'}</strong>
             <span>
               {christmasSeason
-                ? '1–31 December. High contrast is always available in Accessibility.'
+                ? '1–31 December. Light and dark high contrast are available in Accessibility.'
                 : highContrast
                   ? 'High contrast supports Light and Dark only'
                   : `${selectedTheme.label} is selected`}
@@ -324,17 +352,18 @@ export default function ThemePicker() {
               </select>
             </label>
 
-            <label className="pw-accessibility__setting" htmlFor="pw-contrast">
+            <label className="pw-accessibility__setting pw-accessibility__setting--contrast" htmlFor="pw-contrast">
               <span>Contrast</span>
               <select
                 id="pw-contrast"
-                value={contrast}
+                value={contrastOption}
                 onChange={(event) =>
-                  selectContrast(event.target.value as ContrastPreference)
+                  selectContrast(event.target.value as ContrastOption)
                 }
               >
                 <option value="standard">Standard</option>
-                <option value="high">High contrast</option>
+                <option value="high">{christmasSeason ? 'High contrast — Light' : 'High contrast'}</option>
+                {christmasSeason && <option value="high-dark">High contrast — Dark</option>}
               </select>
             </label>
 

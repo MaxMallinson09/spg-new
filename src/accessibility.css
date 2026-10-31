@@ -75,6 +75,7 @@
   color-scheme: light;
 }
 
+:root[data-contrast='high'][data-theme='christmas'][data-christmas-contrast-mode='dark'],
 :root[data-contrast='high'][data-theme='dark'],
 :root[data-contrast='high'][data-theme='neon'],
 :root[data-contrast='high'][data-theme='midnight'] {
@@ -185,6 +186,12 @@
   color: var(--pw-ink);
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+/* Keep the full seasonal mode name visible, including with enlarged text. */
+:root[data-theme='christmas'] .pw-accessibility__setting--contrast {
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
 }
 
 .pw-accessibility__setting select {

@@ -135,3 +135,5 @@ Include a package.json version bump with each new release. Changes added to the 
 
 - Christmas snow is decorative (`aria-hidden`, no pointer events), behind the whole opaque card. It must never cover the password or toolbar and must be hidden outside Christmas, in high contrast, with reduced motion (app or OS), and with forced colours. Keep its positions deterministic for SSR.
 - Christmas uses a dark red password box with white text; accessibility colours still take priority.
+
+- During December, Contrast offers light and dark high-contrast modes. Both keep `data-contrast="high"`; `data-christmas-contrast-mode` chooses the Christmas-only palette. Persist the seasonal mode separately in `spg-christmas-contrast-mode`, preserve the normal theme, and clear it on accessibility reset. January returns to the normal high-contrast presentation.
