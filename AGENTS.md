@@ -132,3 +132,6 @@ Include a package.json version bump with each new release. Changes added to the 
 - Schedule the next local midnight and refresh on focus, pageshow and visibility changes; remove timers/listeners on unmount.
 - Preserve password font, display spacing, generation rules and vocabulary when changing themes.
 - Run seasonal boundary tests in multiple time zones and verify mobile/high-contrast behaviour when changing the scheduling or controls.
+
+- Christmas snow is decorative (`aria-hidden`, no pointer events), behind the whole opaque card. It must never cover the password or toolbar and must be hidden outside Christmas, in high contrast, with reduced motion (app or OS), and with forced colours. Keep its positions deterministic for SSR.
+- Christmas uses a dark red password box with white text; accessibility colours still take priority.
