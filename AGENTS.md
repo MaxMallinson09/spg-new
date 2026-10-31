@@ -122,3 +122,13 @@ pnpm test     # Generation and display regression tests
 ## Release versions
 
 Include a package.json version bump with each new release. Changes added to the same unreleased PR share its existing version; do not deploy solely to change a version number.
+
+## Seasonal themes
+
+- Theme definitions and seasonal rules live in `src/lib/themes.ts`; Christmas styles live in `src/christmas-theme.css`, imported before accessibility styles.
+- Christmas activates every 1–31 December by the user's local calendar. Use the device date after mount, keeping SSR/hydration defaults deterministic; never bake the build/server date into the seasonal choice.
+- During December show only Christmas in both theme menus and reject attempts to select other themes. High contrast, text size, reduced motion and OS forced colours remain available.
+- Store the normal theme separately from its temporary visible palette. Do not persist Christmas or overwrite a saved theme when applying high contrast. On January 1 restore the normal preference, with accessibility taking precedence.
+- Schedule the next local midnight and refresh on focus, pageshow and visibility changes; remove timers/listeners on unmount.
+- Preserve password font, display spacing, generation rules and vocabulary when changing themes.
+- Run seasonal boundary tests in multiple time zones and verify mobile/high-contrast behaviour when changing the scheduling or controls.

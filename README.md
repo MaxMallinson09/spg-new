@@ -45,3 +45,9 @@ Version 3.3.1 updates vulnerable dependencies and hardens the Auth0 gate. See [t
 Run `pnpm test`, `pnpm build`, `pnpm exec tsc --noEmit` and `pnpm audit` when changing authentication or dependencies. Build before type-checking a fresh checkout so TanStack generates its route types. Install from the committed lockfile with `pnpm install --frozen-lockfile`.
 
 Simple mode has only about 25.55 bits of entropy and is unsuitable for passwords that must resist offline guessing. For long-term credentials, use Advanced mode at its 16-character default or longer. Temporary helpdesk passwords need short expiry, a required change at first sign-in and account-level protections enforced by the system receiving them; this generator cannot enforce those policies.
+
+## Christmas theme
+
+Every year, from 1–31 December (using the device's local date), Christmas is the only theme shown in both the desktop chooser and mobile Settings. High contrast, text size and reduced motion remain available. High contrast overrides the festive colours and trim for legibility.
+
+The normal theme preference is kept, so it returns on 1 January. With high contrast still enabled, its compatible light/dark presentation takes precedence until high contrast is turned off. Open tabs refresh at local midnight and when they resume from the background. Christmas cannot be selected outside December and is never saved over the normal theme preference.

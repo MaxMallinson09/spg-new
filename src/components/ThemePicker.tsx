@@ -1,21 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 
-const THEMES = [
-  { id: 'original', label: 'Light', swatch: '#2563eb' },
-  { id: 'dark', label: 'Dark', swatch: '#050505' },
-  { id: 'ocean', label: 'Ocean', swatch: '#00695c' },
-  { id: 'spice', label: 'Spice', swatch: '#bf360c' },
-  { id: 'forest', label: 'Forest', swatch: '#1b5e20' },
-  { id: 'rose', label: 'Rose', swatch: '#c2185b' },
-  { id: 'lavender', label: 'Lavender', swatch: '#6a1b9a' },
-  { id: 'light', label: 'Slate', swatch: '#78909c' },
-  { id: 'mocha', label: 'Mocha', swatch: '#4e342e' },
-  { id: 'neon', label: 'Neon', swatch: '#00ff9f' },
-  { id: 'midnight', label: 'Midnight', swatch: '#4d9fff' },
-  { id: 'gold', label: 'Gold', swatch: '#d4a017' },
-] as const
+import {
+  THEMES, CHRISTMAS_THEME, isThemeName, isHighContrastTheme,
+  resolveTheme, themeOptions, watchChristmasSeason,
+  type StandardThemeName, type ThemeName,
+} from '../lib/themes'
 
-type ThemeName = (typeof THEMES)[number]['id']
 type FontSize = 'normal' | 'large' | 'extra-large'
 type ContrastPreference = 'standard' | 'high'
 type MotionPreference = 'standard' | 'reduced'
@@ -24,13 +14,6 @@ const THEME_STORAGE_KEY = 'spg-theme'
 const FONT_SIZE_STORAGE_KEY = 'spg-font-size'
 const CONTRAST_STORAGE_KEY = 'spg-contrast'
 const MOTION_STORAGE_KEY = 'spg-motion'
-
-const HIGH_CONTRAST_THEMES: readonly ThemeName[] = ['original', 'dark']
-const DARK_HIGH_CONTRAST_SOURCES: readonly ThemeName[] = ['dark', 'neon', 'midnight']
-
-function isThemeName(value: string | null): value is ThemeName {
-  return THEMES.some((theme) => theme.id === value)
-}
 
 function isFontSize(value: string | null): value is FontSize {
   return value === 'normal' || value === 'large' || value === 'extra-large'
@@ -42,14 +25,6 @@ function isContrastPreference(value: string | null): value is ContrastPreference
 
 function isMotionPreference(value: string | null): value is MotionPreference {
   return value === 'standard' || value === 'reduced'
-}
-
-function isHighContrastTheme(theme: ThemeName) {
-  return HIGH_CONTRAST_THEMES.includes(theme)
-}
-
-function highContrastThemeFor(theme: ThemeName): ThemeName {
-  return DARK_HIGH_CONTRAST_SOURCES.includes(theme) ? 'dark' : 'original'
 }
 
 function applyTheme(theme: ThemeName) {
@@ -84,16 +59,18 @@ function persist(key: string, value: string) {
 function ThemeButtons({
   theme,
   highContrast,
+  christmasSeason,
   onSelect,
 }: {
   theme: ThemeName
   highContrast: boolean
+  christmasSeason: boolean
   onSelect: (theme: ThemeName) => void
 }) {
   return (
     <div className="pw-theme-grid" role="group" aria-label="Choose a theme colour">
-      {THEMES.map((item) => {
-        const disabled = highContrast && !isHighContrastTheme(item.id)
+      {themeOptions(christmasSeason).map((item) => {
+        const disabled = !christmasSeason && highContrast && !isHighContrastTheme(item.id)
 
         return (
           <button
@@ -131,17 +108,20 @@ function ThemeButtons({
 export default function ThemePicker() {
   // Deterministic defaults keep SSR and hydration in sync. Saved preferences
   // are restored after mount and then applied directly to the root element.
-  const [theme, setTheme] = useState<ThemeName>('original')
+  const [theme, setTheme] = useState<StandardThemeName>('original')
   const [fontSize, setFontSize] = useState<FontSize>('normal')
   const [contrast, setContrast] = useState<ContrastPreference>('standard')
   const [motion, setMotion] = useState<MotionPreference>('standard')
+  const [christmasSeason, setChristmasSeason] = useState(false)
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false)
+  const displayedTheme = resolveTheme(theme, contrast, christmasSeason)
   const [accessibilityOpen, setAccessibilityOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDetailsElement>(null)
   const accessibilityMenuRef = useRef<HTMLDivElement>(null)
   const accessibilityButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    let nextTheme: ThemeName = 'original'
+    let nextTheme: StandardThemeName = 'original'
     let nextFontSize: FontSize = 'normal'
     let nextContrast: ContrastPreference = 'standard'
     let nextMotion: MotionPreference = 'standard'
@@ -162,25 +142,22 @@ export default function ThemePicker() {
       // Privacy modes may deny localStorage; the defaults remain fully usable.
     }
 
-    // High contrast intentionally has only a light and dark presentation. If
-    // an older saved preference combines high contrast with a colour theme,
-    // migrate it to the closest light/dark equivalent instead of showing a
-    // disabled theme as selected.
-    if (nextContrast === 'high' && !isHighContrastTheme(nextTheme)) {
-      nextTheme = highContrastThemeFor(nextTheme)
-      persist(THEME_STORAGE_KEY, nextTheme)
-    }
-
     setTheme(nextTheme)
     setFontSize(nextFontSize)
     setContrast(nextContrast)
     setMotion(nextMotion)
 
-    applyTheme(nextTheme)
     applyFontSize(nextFontSize)
     applyContrast(nextContrast)
     applyMotion(nextMotion)
+    setPreferencesLoaded(true)
   }, [])
+
+  useEffect(() => watchChristmasSeason(setChristmasSeason), [])
+
+  useEffect(() => {
+    if (preferencesLoaded) applyTheme(displayedTheme)
+  }, [preferencesLoaded, displayedTheme])
 
   useEffect(() => {
     if (!accessibilityOpen) return
@@ -208,10 +185,10 @@ export default function ThemePicker() {
   }, [accessibilityOpen])
 
   const selectTheme = (next: ThemeName) => {
+    if (christmasSeason || !isThemeName(next)) return
     if (contrast === 'high' && !isHighContrastTheme(next)) return
 
     setTheme(next)
-    applyTheme(next)
     persist(THEME_STORAGE_KEY, next)
     if (themeMenuRef.current) themeMenuRef.current.open = false
   }
@@ -223,13 +200,7 @@ export default function ThemePicker() {
   }
 
   const selectContrast = (next: ContrastPreference) => {
-    if (next === 'high' && !isHighContrastTheme(theme)) {
-      const compatibleTheme = highContrastThemeFor(theme)
-      setTheme(compatibleTheme)
-      applyTheme(compatibleTheme)
-      persist(THEME_STORAGE_KEY, compatibleTheme)
-    }
-
+    // Resolve the visible palette without overwriting the saved normal theme.
     setContrast(next)
     applyContrast(next)
     persist(CONTRAST_STORAGE_KEY, next)
@@ -264,7 +235,9 @@ export default function ThemePicker() {
     setAccessibilityOpen((open) => !open)
   }
 
-  const selectedTheme = THEMES.find((item) => item.id === theme) ?? THEMES[0]
+  const selectedTheme = displayedTheme === 'christmas'
+    ? CHRISTMAS_THEME
+    : THEMES.find((item) => item.id === displayedTheme) ?? THEMES[0]
   const highContrast = contrast === 'high'
 
   return (
@@ -283,16 +256,19 @@ export default function ThemePicker() {
         </summary>
         <div className="pw-theme-menu__panel">
           <div className="pw-theme-menu__heading">
-            <strong>Choose a theme</strong>
+            <strong>{christmasSeason ? 'Christmas theme' : 'Choose a theme'}</strong>
             <span>
-              {highContrast
-                ? 'High contrast supports Light and Dark only'
-                : `${selectedTheme.label} is selected`}
+              {christmasSeason
+                ? '1–31 December. High contrast is always available in Accessibility.'
+                : highContrast
+                  ? 'High contrast supports Light and Dark only'
+                  : `${selectedTheme.label} is selected`}
             </span>
           </div>
           <ThemeButtons
-            theme={theme}
+            theme={displayedTheme}
             highContrast={highContrast}
+            christmasSeason={christmasSeason}
             onSelect={selectTheme}
           />
         </div>
@@ -325,10 +301,14 @@ export default function ThemePicker() {
             <div className="pw-accessibility__theme-mobile">
               <span className="pw-accessibility__theme-title">Theme</span>
               <ThemeButtons
-                theme={theme}
+                theme={displayedTheme}
                 highContrast={highContrast}
+                christmasSeason={christmasSeason}
                 onSelect={selectTheme}
               />
+              {christmasSeason && (
+                <p className="pw-season-note">Christmas runs 1–31 December. Other themes return in January.</p>
+              )}
             </div>
 
             <label className="pw-accessibility__setting" htmlFor="pw-font-size">
