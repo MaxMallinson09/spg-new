@@ -1,0 +1,114 @@
+/* Seasonal palette. Accessibility rules load later and always take priority.
+   Snow stays behind the card; the password keeps its approved font. */
+:root[data-theme='christmas'] {
+  --pw-bg: radial-gradient(ellipse at top, #246b50 0%, #103e30 55%, #092b24 100%);
+  --pw-surface: #fffaf0;
+  --pw-surface-muted: #f3eee0;
+  --pw-border: #b7aa8e;
+  --pw-border-hover: #7f7258;
+  --pw-ink: #213c30;
+  --pw-muted: #586452;
+  --pw-primary: #9c2338;
+  --pw-primary-dark: #7e182c;
+  --pw-accent: #146346;
+  --pw-danger: #9c2338;
+  --pw-danger-dark: #7e182c;
+  --pw-ring: rgba(156, 35, 56, 0.2);
+  --pw-heading: #174d39;
+  --pw-password-bg: #5b1424;
+  --pw-password-color: #ffffff;
+  --pw-password-meta: #f8e7eb;
+  --pw-password-border: #8b3a4d;
+  --pw-primary-contrast: #ffffff;
+  --pw-taskbar-bg: #fffaf0;
+  color-scheme: light;
+}
+
+/* Static, unobtrusive festive trim. Nothing overlaps text or controls, and
+   decoration disappears entirely for high contrast and forced colours. */
+:root[data-theme='christmas']:not([data-contrast='high']) .pw-card {
+  border-top: 4px solid #b49857;
+  box-shadow: 0 2px 0 rgba(255, 250, 240, 0.1), 0 20px 50px -20px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme='christmas']:not([data-contrast='high']) .pw-card::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, #146346 0 1.6rem, #fffaf0 1.6rem 2rem, #9c2338 2rem 3.6rem, #fffaf0 3.6rem 4rem);
+  pointer-events: none;
+  border-radius: 0 0 2px 2px;
+}
+
+.pw-season-note {
+  margin: 0.65rem 0 0;
+  color: var(--pw-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (forced-colors: active) {
+  :root[data-theme='christmas'] .pw-card {
+    border-top-width: 1px;
+    box-shadow: none;
+  }
+
+  :root[data-theme='christmas'] .pw-card::before {
+    display: none;
+  }
+}
+
+/* One background layer, below the entire opaque generator card and toolbar.
+   Snow cannot cover the password, intercept clicks or introduce scrollbars. */
+:root[data-theme='christmas'] .pw-page {
+  isolation: isolate;
+}
+
+:root[data-theme='christmas'] .pw-card {
+  z-index: 1;
+}
+
+.pw-snow {
+  display: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+:root[data-theme='christmas']:not([data-contrast='high']):not([data-motion='reduced']) .pw-snow {
+  display: block;
+}
+
+.pw-snow__flake {
+  position: absolute;
+  top: -2rem;
+  left: var(--snow-x, 50%);
+  width: var(--snow-size, 0.75rem);
+  height: var(--snow-size, 0.75rem);
+  color: #ffffff;
+  opacity: 0.65;
+  animation: pw-snowfall var(--snow-duration, 20s) var(--snow-delay, 0s) linear infinite;
+}
+
+.pw-snow__flake svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes pw-snowfall {
+  from { transform: translate3d(0, -5vh, 0) rotate(0deg); }
+  to { transform: translate3d(var(--snow-drift, 1rem), 110vh, 0) rotate(180deg); }
+}
+
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .pw-snow {
+    display: none !important;
+  }
+}
