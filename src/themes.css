@@ -83,7 +83,7 @@
   --pw-ring: rgba(255, 111, 0, 0.22);
   --pw-heading: #bf360c;
   --pw-password-bg: #bf360c;
-  --pw-password-color: #ffe0b2;
+  --pw-password-color: #fff8f2;
   --pw-password-meta: #ffccbc;
   --pw-password-border: #9f2c08;
   --pw-primary-contrast: #2d1500;
@@ -105,7 +105,7 @@
   --pw-ring: rgba(67, 160, 71, 0.22);
   --pw-heading: #1b5e20;
   --pw-password-bg: #1b5e20;
-  --pw-password-color: #c8e6c9;
+  --pw-password-color: #f4fff5;
   --pw-password-meta: #e8f5e9;
   --pw-password-border: #164d1a;
   --pw-primary-contrast: #102a13;
@@ -127,7 +127,7 @@
   --pw-ring: rgba(233, 30, 99, 0.2);
   --pw-heading: #c2185b;
   --pw-password-bg: #880e4f;
-  --pw-password-color: #f8bbd0;
+  --pw-password-color: #fff5fa;
   --pw-password-meta: #fce4ec;
   --pw-password-border: #6f0b40;
   --pw-primary-contrast: #ffffff;
@@ -149,7 +149,7 @@
   --pw-ring: rgba(142, 36, 170, 0.2);
   --pw-heading: #6a1b9a;
   --pw-password-bg: #4a148c;
-  --pw-password-color: #e1bee7;
+  --pw-password-color: #faf5ff;
   --pw-password-meta: #f3e5f5;
   --pw-password-border: #3b1070;
   --pw-primary-contrast: #ffffff;
@@ -193,7 +193,7 @@
   --pw-ring: rgba(109, 76, 65, 0.2);
   --pw-heading: #4e342e;
   --pw-password-bg: #3e2723;
-  --pw-password-color: #d7ccc8;
+  --pw-password-color: #fff8f4;
   --pw-password-meta: #efebe9;
   --pw-password-border: #2c1b18;
   --pw-primary-contrast: #ffffff;
@@ -259,7 +259,7 @@
   --pw-ring: rgba(212, 160, 23, 0.24);
   --pw-heading: #b8860b;
   --pw-password-bg: #5c4200;
-  --pw-password-color: #fff176;
+  --pw-password-color: #fffdf0;
   --pw-password-meta: #fff9c4;
   --pw-password-border: #473300;
   --pw-primary-contrast: #211700;
