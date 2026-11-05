@@ -280,6 +280,15 @@ summary:focus-visible,
   text-align: center;
 }
 
+.pw-display__reading {
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--pw-password-border, var(--pw-border));
+  text-align: center;
+}
+
 .pw-actions {
   display: flex;
   gap: 0.75rem;
@@ -480,15 +489,19 @@ summary:focus-visible,
   }
 }
 
-/* --- Advanced mode: toggle switch and length slider --- */
+/* --- Password options and length slider --- */
 
 .pw-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin: -0.75rem 0 1.25rem;
 }
 
 /* The whole row is the label, so the text is part of the switch's hit area
    rather than something you have to aim past to reach the track. */
 .pw-switch {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   gap: 0.75rem;

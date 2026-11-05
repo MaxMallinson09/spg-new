@@ -7,6 +7,7 @@ import PasswordText from './PasswordText'
 import {
   generateSimplePassword,
   generateAdvancedPassword,
+  formatSimplePasswordReading,
   ADVANCED_MIN_LENGTH,
   ADVANCED_MAX_LENGTH,
   ADVANCED_DEFAULT_LENGTH,
@@ -25,8 +26,12 @@ export default function PasswordGenerator() {
   const [copyState, setCopyState] = useState<CopyState>('idle')
   const [spin, setSpin] = useState(false)
   const [advanced, setAdvanced] = useState(false)
+  const [showReadingGuide, setShowReadingGuide] = useState(false)
   const [length, setLength] = useState(ADVANCED_DEFAULT_LENGTH)
   const [now, setNow] = useState<Date | null>(null)
+  const readingGuide = !advanced && showReadingGuide && generated
+    ? formatSimplePasswordReading(generated)
+    : null
 
   // Covers the first render and every later change of mode or length, so the
   // password on screen always matches the controls above it.
@@ -112,6 +117,22 @@ export default function PasswordGenerator() {
               </span>
             </span>
           </label>
+          {!advanced && (
+            <label className="pw-switch" htmlFor="pw-reading-guide">
+              <input
+                id="pw-reading-guide"
+                type="checkbox"
+                role="switch"
+                className="pw-switch__input"
+                checked={showReadingGuide}
+                onChange={(event) => setShowReadingGuide(event.target.checked)}
+              />
+              <span className="pw-switch__track" aria-hidden="true">
+                <span className="pw-switch__knob" />
+              </span>
+              <span className="pw-switch__text">How to say it</span>
+            </label>
+          )}
         </div>
 
         {advanced && (
@@ -155,6 +176,12 @@ export default function PasswordGenerator() {
                 ? 'Case-sensitive · no spaces'
                 : 'Only the first letter is a capital · no spaces'}
             </span>
+          )}
+          {readingGuide && (
+            <div className="pw-display__reading">
+              <span className="pw-display__meta">Read aloud</span>
+              <span className="pw-display__hint">{readingGuide}</span>
+            </div>
           )}
         </div>
 

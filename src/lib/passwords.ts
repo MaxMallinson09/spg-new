@@ -48,6 +48,14 @@ const WORDS = [
 // '@' is deliberately excluded so generated passwords never contain it.
 // Advanced mode deliberately reuses this same set rather than widening it.
 const SPECIAL_CHARS = ['!', '*', '?']
+const SPOKEN_SYMBOLS = new Map([
+  ['!', 'exclamation mark'],
+  ['*', 'asterisk'],
+  ['?', 'question mark'],
+])
+const SPOKEN_DIGITS = [
+  'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+]
 
 // Advanced mode: the user picks the length, so these only bound the slider.
 // 'I' / 'l' / '1' / 'O' / '0' are kept in: advanced passwords are meant to be
@@ -112,6 +120,21 @@ export function generateSimplePassword(): GeneratedPassword {
   // Preserve the true word boundaries for visual gaps, including when the
   // words are adjacent. The clipboard receives only the joined string.
   return { password: parts.join(''), parts }
+}
+
+/** Read the original parts in order, including any leading zeros. */
+export function formatSimplePasswordReading({ password, parts }: GeneratedPassword): string | null {
+  if (!parts?.[0] || parts.join('') !== password) return null
+
+  const [firstWord, ...remainingParts] = parts
+  const spokenParts = remainingParts.map((part) => {
+    if (/^\d{3}$/.test(part)) {
+      return Array.from(part, (digit) => SPOKEN_DIGITS[Number(digit)]).join(' ')
+    }
+    return SPOKEN_SYMBOLS.get(part) ?? part
+  })
+
+  return [`${firstWord} (capital ${firstWord[0]})`, ...spokenParts].join(' · ')
 }
 
 export function generatePassword(): string {
