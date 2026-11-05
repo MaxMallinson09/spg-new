@@ -104,7 +104,8 @@ Sign-in is handled entirely by `netlify/edge-functions/auth.ts`, which runs on e
 - Malformed tokens fail closed. Require a subject, finite expiry/issued-at values, the expected issuer/audience, and matching authorized party when applicable; still verify every accepted RS256 signature.
 - Signing-key fetches share an in-flight promise and have a 30-second per-isolate cooldown, including failures. Never reuse keys beyond the 10-minute TTL. Key rotation can take up to the cooldown to become visible.
 - Auth0 fetches time out after five seconds. Protected responses use private/no-store cache headers. Keep `onError: 'fail'` on the auth gate.
-- Run `pnpm audit` after dependency changes. The multipart-parser override lives in `pnpm-workspace.yaml`; do not remove it while an upstream dependency pins an affected version.
+- Logout clears the app session only on a same-origin POST. The client then navigates to Auth0 to end the provider session.
+- Only the prerendered client output is published. Keep the authentication edge function in place and run `pnpm audit` after dependency changes.
 - `AUTH0_DOMAIN` and `AUTH0_CLIENT_ID` are read at runtime via `Netlify.env.get()` and are never inlined into the bundle.
 
 **Auth0 dashboard requirements** — the site returns 401/redirect loops without these:

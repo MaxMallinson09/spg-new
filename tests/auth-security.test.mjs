@@ -140,14 +140,63 @@ test('callback validates state and PKCE and rechecks stored return paths', async
     return Response.json({ keys: [jwk] })
   })
   const initial = { pb_state: 'expected', pb_verifier: 'test-verifier', pb_return: '/a/..//attacker.example' }
-  assert.equal((await auth(request('/auth/callback?code=test-code&state=wrong'), context(initial))).status, 302)
+  const unrelated = context(initial)
+  assert.equal((await auth(request('/auth/callback?code=test-code&state=wrong'), unrelated)).status, 401)
+  assert.deepEqual(unrelated.written, [])
   assert.equal(exchanges, 0)
   const ctx = context(initial)
   const response = await auth(request('/auth/callback?code=test-code&state=expected'), ctx)
   assert.equal(response.headers.get('location'), '/')
+  assert.equal(response.headers.get('referrer-policy'), 'no-referrer')
   assert.equal(ctx.values.get('pb_session'), session)
   const cookie = ctx.written.find((c) => c.name === 'pb_session')
   assert.ok(cookie.httpOnly && cookie.secure && cookie.sameSite === 'Lax')
+})
+
+test('unsolicited authorization errors cannot clear login cookies or reflect arbitrary text', async () => {
+  const auth = loadAuth()
+  const initial = { pb_state: 'expected', pb_verifier: 'test-verifier', pb_return: '/' }
+  for (const suffix of ['', '&state=wrong', '&state=expected']) {
+    const ctx = context(initial)
+    const response = await auth(request('/auth/callback?error=access_denied&error_description=attacker-text' + suffix), ctx)
+    assert.equal(response.status, 401)
+    assert.equal(response.headers.get('cache-control'), 'no-store')
+    assert.doesNotMatch(await response.text(), /attacker-text/)
+    if (suffix === '&state=expected') {
+      assert.equal(ctx.values.get('pb_state'), '')
+      assert.equal(ctx.values.get('pb_verifier'), '')
+    } else {
+      assert.deepEqual(ctx.written, [])
+    }
+  }
+})
+
+test('logout rejects navigations and cross-origin posts and clears only the same-origin session', async () => {
+  const auth = loadAuth()
+  const session = await token()
+  for (const [options, status] of [
+    [{ method: 'GET' }, 405],
+    [{ method: 'HEAD' }, 405],
+    [{ method: 'POST' }, 403],
+    [{ method: 'POST', headers: { origin: 'null' } }, 403],
+    [{ method: 'POST', headers: { origin: 'https://spg.example.attacker.example' } }, 403],
+  ]) {
+    const ctx = context({ pb_session: session })
+    const response = await auth(request('/auth/logout', options), ctx)
+    assert.equal(response.status, status)
+    assert.equal(response.headers.get('location'), null)
+    assert.deepEqual(ctx.written, [])
+  }
+
+  const ctx = context({ pb_session: session })
+  const response = await auth(request('/auth/logout', { method: 'POST', headers: { origin } }), ctx)
+  assert.equal(response.status, 200)
+  assert.equal(response.headers.get('cache-control'), 'no-store')
+  const target = new URL(await response.text())
+  assert.equal(target.origin, `https://${domain}`)
+  assert.equal(target.pathname, '/v2/logout')
+  assert.equal(target.searchParams.get('returnTo'), origin)
+  assert.equal(ctx.written.find((cookie) => cookie.name === 'pb_session')?.maxAge, 0)
 })
 
 test('unauthenticated access and unused server-function endpoints stay blocked', async () => {

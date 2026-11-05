@@ -14,6 +14,7 @@ type Profile = {
  */
 export default function UserMenu() {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [logoutFailed, setLogoutFailed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -30,6 +31,18 @@ export default function UserMenu() {
       cancelled = true
     }
   }, [])
+
+  async function logout() {
+    try {
+      const response = await fetch('/auth/logout', { method: 'POST' })
+      if (!response.ok) throw new Error('Could not log out')
+      const destination = new URL(await response.text())
+      if (destination.protocol !== 'https:') throw new Error('Invalid logout URL')
+      window.location.assign(destination.href)
+    } catch {
+      setLogoutFailed(true)
+    }
+  }
 
   if (!profile) return null
 
@@ -55,12 +68,8 @@ export default function UserMenu() {
       <span className="pw-user__name" title={label}>
         {label}
       </span>
-      <button
-        type="button"
-        className="pw-user__logout"
-        onClick={() => window.location.assign('/auth/logout')}
-      >
-        Log out
+      <button type="button" className="pw-user__logout" onClick={logout}>
+        {logoutFailed ? 'Retry logout' : 'Log out'}
       </button>
     </div>
   )
