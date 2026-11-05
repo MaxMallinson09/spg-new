@@ -3,7 +3,6 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
-import netlify from '@netlify/vite-plugin-tanstack-start'
 
 // Auth0 credentials are deliberately absent from this file. The sign-in flow
 // runs entirely in netlify/edge-functions/auth.ts, so no Auth0 identifier needs
@@ -14,13 +13,9 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
-    netlify(),
     tanstackStart({
-      // This app has one static page and no server-side loader data. Generate
-      // the root HTML at build time so Netlify can serve it directly from the
-      // CDN instead of invoking the TanStack Start server handler for `/`.
-      // The Auth0 edge function still runs on `/*`, so this does not weaken the
-      // authentication boundary or expose the page to signed-out visitors.
+      // Netlify publishes only the prerendered client output. This app has no
+      // server loaders or functions, and the Auth0 edge gate protects every path.
       prerender: {
         enabled: true,
         autoStaticPathsDiscovery: false,

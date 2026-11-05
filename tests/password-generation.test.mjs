@@ -68,6 +68,24 @@ test('rejection sampling and leading zeros work with the number at the end', () 
   assert.deepEqual(Array.from(result.parts), ['Album', 'amber', '007', '!'])
 })
 
+test('the reading guide preserves both number positions and says each digit and symbol', () => {
+  for (const [position, symbol, expected] of [
+    [0, 0, 'Album (capital A) · zero zero seven · amber · exclamation mark'],
+    [1, 1, 'Album (capital A) · amber · zero zero seven · asterisk'],
+    [0, 2, 'Album (capital A) · zero zero seven · amber · question mark'],
+  ]) {
+    const generator = loadGenerator(scripted([0, 0, 7, position, symbol]))
+    const result = generator.generateSimplePassword()
+    assert.equal(generator.formatSimplePasswordReading(result), expected)
+  }
+})
+
+test('the reading guide requires metadata for the current password', () => {
+  const { formatSimplePasswordReading } = loadGenerator()
+  assert.equal(formatSimplePasswordReading({ password: 'aB1cD2eF3!' }), null)
+  assert.equal(formatSimplePasswordReading({ password: 'Album007amber!', parts: ['Apple', '042', 'book', '?'] }), null)
+})
+
 test('cryptographic samples preserve two words, three digits and both layouts', () => {
   const generator = loadGenerator()
   const layouts = new Set()

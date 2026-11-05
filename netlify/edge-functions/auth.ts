@@ -197,7 +197,23 @@ function clearFlowCookies(context: Context, secure: boolean) {
 }
 
 function redirect(location: string): Response {
-  return new Response(null, { status: 302, headers: { location, 'cache-control': 'no-store' } })
+  return new Response(null, {
+    status: 302,
+    headers: { location, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' },
+  })
+}
+
+function plainResponse(message: string, status: number, headers?: Record<string, string>): Response {
+  return new Response(message, {
+    status,
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+      'referrer-policy': 'no-referrer',
+      'x-content-type-options': 'nosniff',
+      ...headers,
+    },
+  })
 }
 
 export default async (request: Request, context: Context) => {
@@ -207,23 +223,18 @@ export default async (request: Request, context: Context) => {
   const secure = url.protocol === 'https:'
 
   if (!domain || !clientId) {
-    return new Response(
+    return plainResponse(
       'Auth0 is not configured. Set AUTH0_DOMAIN and AUTH0_CLIENT_ID for this site, then redeploy.',
-      { status: 503, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } },
+      503,
     )
   }
 
   const redirectUri = `${url.origin}${CALLBACK_PATH}`
 
   // This app does not define TanStack server functions. Keep the framework's
-  // unused server-function deserializer unreachable so a vulnerable transitive
-  // package cannot be exercised over HTTP. If server functions are added in
-  // future, upgrade the TanStack Start stack before removing this block.
+  // server-function route disabled even if a server handler is added later.
   if (url.pathname === SERVER_FN_PATH || url.pathname.startsWith(`${SERVER_FN_PATH}/`)) {
-    return new Response('Not found', {
-      status: 404,
-      headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
-    })
+    return plainResponse('Not found', 404)
   }
 
   // ---- Start a login ----
@@ -250,25 +261,19 @@ export default async (request: Request, context: Context) => {
 
   // ---- Finish a login ----
   if (url.pathname === CALLBACK_PATH) {
-    const error = url.searchParams.get('error')
-    if (error) {
-      clearFlowCookies(context, secure)
-      const description = url.searchParams.get('error_description') ?? error
-      return new Response(`Sign-in failed: ${description}`, {
-        status: 401,
-        headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
-      })
+    const returnedState = url.searchParams.get('state')
+    const expectedState = context.cookies.get(STATE_COOKIE)
+
+    // Only the matching callback may complete or clear the pending flow.
+    if (!expectedState || returnedState !== expectedState) {
+      return plainResponse('Sign-in failed. Return to the home page to try again.', 401)
     }
 
     const code = url.searchParams.get('code')
-    const returnedState = url.searchParams.get('state')
-    const expectedState = context.cookies.get(STATE_COOKIE)
     const verifier = context.cookies.get(VERIFIER_COOKIE)
-
-    // Missing or mismatched state means this callback was not started here.
-    if (!code || !verifier || !expectedState || returnedState !== expectedState) {
+    if (!code || !verifier || url.searchParams.has('error')) {
       clearFlowCookies(context, secure)
-      return redirect(LOGIN_PATH)
+      return plainResponse('Sign-in failed. Return to the home page to try again.', 401)
     }
 
     let idToken: string | null = null
@@ -294,19 +299,13 @@ export default async (request: Request, context: Context) => {
     }
     if (!idToken) {
       clearFlowCookies(context, secure)
-      return new Response('Sign-in failed: could not exchange the authorization code.', {
-        status: 401,
-        headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
-      })
+      return plainResponse('Sign-in failed: could not exchange the authorization code.', 401)
     }
 
-    const claims = idToken ? await verifyIdToken(idToken, domain, clientId) : null
-    if (!idToken || !claims) {
+    const claims = await verifyIdToken(idToken, domain, clientId)
+    if (!claims) {
       clearFlowCookies(context, secure)
-      return new Response('Sign-in failed: the identity token did not verify.', {
-        status: 401,
-        headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
-      })
+      return plainResponse('Sign-in failed: the identity token did not verify.', 401)
     }
 
     const returnTo = safeReturnPath(context.cookies.get(RETURN_COOKIE), url.origin)
@@ -326,6 +325,13 @@ export default async (request: Request, context: Context) => {
 
   // ---- Log out ----
   if (url.pathname === LOGOUT_PATH) {
+    if (request.method !== 'POST') {
+      return plainResponse('Method not allowed', 405, { allow: 'POST' })
+    }
+    if (request.headers.get('origin') !== url.origin) {
+      return plainResponse('Forbidden', 403)
+    }
+
     context.cookies.set({
       name: SESSION_COOKIE,
       value: '',
@@ -338,7 +344,7 @@ export default async (request: Request, context: Context) => {
     const logout = new URL(`https://${domain}/v2/logout`)
     logout.searchParams.set('client_id', clientId)
     logout.searchParams.set('returnTo', url.origin)
-    return redirect(logout.toString())
+    return plainResponse(logout.toString(), 200)
   }
 
   // ---- Everything below here requires a valid session ----
@@ -369,7 +375,7 @@ export default async (request: Request, context: Context) => {
     // would just produce a confusing parse error in the browser.
     const wantsHtml = request.headers.get('accept')?.includes('text/html')
     if (!wantsHtml) {
-      return new Response('Unauthorized', { status: 401, headers: { 'cache-control': 'no-store' } })
+      return plainResponse('Unauthorized', 401)
     }
     const target = `${LOGIN_PATH}?returnTo=${encodeURIComponent(url.pathname + url.search)}`
     return redirect(target)
