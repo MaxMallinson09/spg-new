@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 
 import ThemePicker from './ThemePicker'
 import UserMenu from './UserMenu'
@@ -24,6 +24,7 @@ export default function PasswordGenerator() {
   const [generated, setGenerated] = useState<GeneratedPassword | null>(null)
   const password = generated?.password ?? null
   const [copyState, setCopyState] = useState<CopyState>('idle')
+  const copyAttempt = useRef(0)
   const [spin, setSpin] = useState(false)
   const [advanced, setAdvanced] = useState(false)
   const [showReadingGuide, setShowReadingGuide] = useState(false)
@@ -39,6 +40,7 @@ export default function PasswordGenerator() {
     setGenerated(
       advanced ? { password: generateAdvancedPassword(length) } : generateSimplePassword(),
     )
+    copyAttempt.current += 1
     setCopyState('idle')
   }, [advanced, length])
 
@@ -52,6 +54,7 @@ export default function PasswordGenerator() {
     setGenerated(
       advanced ? { password: generateAdvancedPassword(length) } : generateSimplePassword(),
     )
+    copyAttempt.current += 1
     setCopyState('idle')
     setSpin(true)
     window.setTimeout(() => setSpin(false), 420)
@@ -59,13 +62,21 @@ export default function PasswordGenerator() {
 
   const copy = useCallback(async () => {
     if (!password) return
+    const attempt = ++copyAttempt.current
+    let outcome: CopyState = 'copied'
     try {
       await navigator.clipboard.writeText(password)
-      setCopyState('copied')
     } catch {
-      setCopyState('failed')
+      outcome = 'failed'
     }
-    window.setTimeout(() => setCopyState('idle'), 1800)
+    if (copyAttempt.current !== attempt) return
+
+    setCopyState(outcome)
+    if (outcome === 'copied') {
+      window.setTimeout(() => {
+        if (copyAttempt.current === attempt) setCopyState('idle')
+      }, 1800)
+    }
   }, [password])
 
   return (
@@ -202,24 +213,20 @@ export default function PasswordGenerator() {
             className="pw-btn pw-btn--ghost"
             disabled={!password}
           >
-            {copyState === 'copied'
-              ? 'Copied!'
-              : copyState === 'failed'
-                ? "Couldn't copy"
-                : 'Copy'}
+            {copyState === 'copied' ? 'Copied!' : 'Copy'}
           </button>
+          <p
+            className={copyState === 'failed' ? 'pw-copy-feedback' : 'pw-sr-only'}
+            role="status"
+            aria-live="polite"
+          >
+            {copyState === 'copied'
+              ? 'Password copied to the clipboard.'
+              : copyState === 'failed'
+                ? 'Couldn’t copy. Select the password and copy it manually.'
+                : ''}
+          </p>
         </div>
-
-        {/* The Copy button relabels itself on success, but a label change on the
-            focused element is announced inconsistently across screen readers.
-            This region states the outcome outright. */}
-        <p className="pw-sr-only" role="status" aria-live="polite">
-          {copyState === 'copied'
-            ? 'Password copied to the clipboard.'
-            : copyState === 'failed'
-              ? 'Could not copy the password. Select it and copy it manually.'
-              : ''}
-        </p>
 
         <h2 className="pw-sr-only">What every password contains</h2>
         {/* role="list" is redundant in theory, but `list-style: none` strips

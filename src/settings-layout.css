@@ -387,6 +387,12 @@
   }
 }
 
+@media (max-width: 420px) {
+  :root[data-font-size='extra-large'] .pw-page {
+    padding-top: 6rem;
+  }
+}
+
 @media (forced-colors: active) {
   .pw-theme-menu__summary,
   .pw-theme-menu__panel,

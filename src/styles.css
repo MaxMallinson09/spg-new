@@ -291,8 +291,18 @@ summary:focus-visible,
 
 .pw-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1.75rem;
+}
+
+.pw-copy-feedback {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--pw-ink);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .pw-btn {
@@ -400,6 +410,11 @@ summary:focus-visible,
 @media (max-width: 420px) {
   .pw-card {
     padding: 1.75rem 1.25rem;
+  }
+
+  .pw-actions .pw-btn {
+    gap: 0.25rem;
+    padding-inline: 0.4rem;
   }
 
   .pw-checklist {
