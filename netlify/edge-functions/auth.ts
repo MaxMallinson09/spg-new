@@ -344,7 +344,7 @@ export default async (request: Request, context: Context) => {
     const logout = new URL(`https://${domain}/v2/logout`)
     logout.searchParams.set('client_id', clientId)
     logout.searchParams.set('returnTo', url.origin)
-    return redirect(logout.toString())
+    return plainResponse(logout.toString(), 200)
   }
 
   // ---- Everything below here requires a valid session ----
