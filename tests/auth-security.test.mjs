@@ -11,10 +11,11 @@ const compiled = ts.transpileModule(source, {
 const origin = 'https://spg.example'
 const domain = 'tenant.auth0.example'
 const clientId = 'spg-client'
+const nonce = 'test-nonce'
 const keys = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify'])
 const jwk = { ...await crypto.subtle.exportKey('jwk', keys.publicKey), kid: 'known-key', use: 'sig' }
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url')
-const claims = () => ({ sub: 'auth0|test-user', iss: `https://${domain}/`, aud: clientId, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 3600 })
+const claims = () => ({ sub: 'auth0|test-user', nonce, iss: `https://${domain}/`, aud: clientId, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 3600 })
 async function token(payload = claims(), header = { alg: 'RS256', kid: jwk.kid }) {
   const input = `${encode(header)}.${encode(payload)}`
   const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, new TextEncoder().encode(input))
@@ -35,7 +36,7 @@ function context(initial = {}) {
   return {
     values, written, passed: false,
     cookies: { get: (name) => values.get(name), set: (cookie) => { written.push(cookie); values.set(cookie.name, cookie.value) } },
-    next: async function () { this.passed = true; return new Response('protected document', { headers: { 'content-type': 'text/html', 'cache-control': 'public, max-age=3600' } }) },
+    next: async function () { this.passed = true; return new Response('<main>protected document</main><script>window.ready=true</script>', { headers: { 'content-type': 'text/html', 'cache-control': 'public, max-age=3600' } }) },
   }
 }
 const request = (path, options) => new Request(origin + path, options)
@@ -46,6 +47,7 @@ test('login return paths stay local after browser normalization', async () => {
     const ctx = context()
     const response = await auth(request('/auth/login?returnTo=' + encodeURIComponent(value)), ctx)
     assert.equal(response.status, 302)
+    assert.ok(new URL(response.headers.get('location')).searchParams.get('nonce'))
     const stored = ctx.values.get('pb_return')
     assert.equal(new URL(stored, origin).origin, origin, value)
   }
@@ -89,7 +91,7 @@ test('concurrent cold requests share one JWKS fetch', async () => {
 
 test('valid signatures still require correct identity, issuer, audience and times', async () => {
   const auth = loadAuth()
-  for (const overrides of [{ sub: undefined }, { iat: undefined }, { exp: 1 }, { iat: Math.floor(Date.now() / 1000) + 1000 }, { nbf: Math.floor(Date.now() / 1000) + 1000 }, { iss: 'https://attacker.example/' }, { aud: 'another-client' }, { aud: [clientId, 'another-client'] }, { azp: 'another-client' }]) {
+  for (const overrides of [{ sub: undefined }, { nonce: undefined }, { iat: undefined }, { exp: 1 }, { iat: Math.floor(Date.now() / 1000) + 1000 }, { nbf: Math.floor(Date.now() / 1000) + 1000 }, { iss: 'https://attacker.example/' }, { aud: 'another-client' }, { aud: [clientId, 'another-client'] }, { azp: 'another-client' }]) {
     const response = await auth(request('/auth/me'), context({ pb_session: await token({ ...claims(), ...overrides }) }))
     assert.equal(response.status, 401, JSON.stringify(overrides))
   }
@@ -139,7 +141,7 @@ test('callback validates state and PKCE and rechecks stored return paths', async
     }
     return Response.json({ keys: [jwk] })
   })
-  const initial = { pb_state: 'expected', pb_verifier: 'test-verifier', pb_return: '/a/..//attacker.example' }
+  const initial = { pb_state: 'expected', pb_verifier: 'test-verifier', pb_nonce: nonce, pb_return: '/a/..//attacker.example' }
   const unrelated = context(initial)
   assert.equal((await auth(request('/auth/callback?code=test-code&state=wrong'), unrelated)).status, 401)
   assert.deepEqual(unrelated.written, [])
@@ -151,11 +153,15 @@ test('callback validates state and PKCE and rechecks stored return paths', async
   assert.equal(ctx.values.get('pb_session'), session)
   const cookie = ctx.written.find((c) => c.name === 'pb_session')
   assert.ok(cookie.httpOnly && cookie.secure && cookie.sameSite === 'Lax')
+
+  const mismatched = context({ ...initial, pb_nonce: 'wrong-nonce' })
+  assert.equal((await auth(request('/auth/callback?code=test-code&state=expected'), mismatched)).status, 401)
+  assert.equal(mismatched.values.has('pb_session'), false)
 })
 
 test('unsolicited authorization errors cannot clear login cookies or reflect arbitrary text', async () => {
   const auth = loadAuth()
-  const initial = { pb_state: 'expected', pb_verifier: 'test-verifier', pb_return: '/' }
+  const initial = { pb_state: 'expected', pb_verifier: 'test-verifier', pb_nonce: nonce, pb_return: '/' }
   for (const suffix of ['', '&state=wrong', '&state=expected']) {
     const ctx = context(initial)
     const response = await auth(request('/auth/callback?error=access_denied&error_description=attacker-text' + suffix), ctx)
@@ -212,7 +218,10 @@ test('protected responses cannot be stored by browser or shared caches', async (
   const ctx = context({ pb_session: await token() })
   const response = await loadAuth()(request('/'), ctx)
   assert.equal(ctx.passed, true)
-  assert.equal(await response.text(), 'protected document')
+  const body = await response.text()
+  assert.match(body, /<script nonce="[A-Za-z0-9_-]+">window\.ready=true<\/script>/)
+  assert.match(response.headers.get('content-security-policy'), /script-src 'self' 'nonce-[A-Za-z0-9_-]+'/)
+  assert.doesNotMatch(response.headers.get('content-security-policy'), /script-src[^;]*'unsafe-inline'/)
   assert.equal(response.headers.get('cache-control'), 'private, no-store')
   assert.equal(response.headers.get('netlify-cdn-cache-control'), 'no-store')
 })
@@ -237,7 +246,7 @@ test('token exchange failures clear the login flow without creating a session', 
       if (result === 'invalid-token') return Response.json({ id_token: {} })
       return new Response('', { status: 503 })
     })
-    const ctx = context({ pb_state: 'expected', pb_verifier: 'test-verifier' })
+    const ctx = context({ pb_state: 'expected', pb_verifier: 'test-verifier', pb_nonce: nonce })
     const response = await auth(request('/auth/callback?code=test-code&state=expected'), ctx)
     assert.equal(response.status, 401)
     assert.equal(ctx.values.has('pb_session'), false)
