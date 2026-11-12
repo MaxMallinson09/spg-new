@@ -81,6 +81,9 @@ const UINT32_RANGE = 0x100000000
  * one of them derive the others.
  */
 function randomInt(maxExclusive: number): number {
+  if (typeof crypto === 'undefined' || typeof crypto?.getRandomValues !== 'function') {
+    throw new Error('Secure random number generation is unavailable.')
+  }
   // Discard the short tail of the uint32 range that does not divide evenly,
   // otherwise the modulo below would favour the lowest values.
   const limit = Math.floor(UINT32_RANGE / maxExclusive) * maxExclusive

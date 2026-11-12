@@ -194,6 +194,16 @@ function safeReturnPath(value: string | null | undefined, origin: string): strin
   }
 }
 
+function safePictureUrl(value: string | undefined): string | null {
+  if (typeof value !== 'string' || !value || value.length > 2048) return null
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'https:' ? parsed.href : null
+  } catch {
+    return null
+  }
+}
+
 function clearFlowCookies(context: Context, secure: boolean) {
   for (const name of [VERIFIER_COOKIE, STATE_COOKIE, NONCE_COOKIE, RETURN_COOKIE]) {
     context.cookies.set({ name, value: '', path: '/', httpOnly: true, secure, sameSite: 'Lax', maxAge: 0 })
@@ -389,7 +399,7 @@ export default async (request: Request, context: Context) => {
         authenticated: true,
         name: session.name ?? session.nickname ?? session.email ?? null,
         email: session.email ?? null,
-        picture: session.picture ?? null,
+        picture: safePictureUrl(session.picture),
       }),
       { headers: { 'content-type': 'application/json', 'cache-control': 'no-store, private' } },
     )

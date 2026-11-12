@@ -5,6 +5,16 @@ type Profile = {
   picture: string | null
 }
 
+function safeAvatarUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || !value) return null
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'https:' ? parsed.href : null
+  } catch {
+    return null
+  }
+}
+
 /**
  * Shows who is signed in and offers a way out.
  *
@@ -22,7 +32,7 @@ export default function UserMenu() {
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (cancelled || !data?.authenticated) return
-        setProfile({ name: data.name ?? null, picture: data.picture ?? null })
+        setProfile({ name: data.name ?? null, picture: safeAvatarUrl(data.picture) })
       })
       .catch(() => {
         // A failed lookup just means no chip; the page is already gated.
@@ -59,6 +69,7 @@ export default function UserMenu() {
           width={26}
           height={26}
           decoding="async"
+          referrerPolicy="no-referrer"
         />
       ) : (
         <span className="pw-user__avatar pw-user__avatar--initial" aria-hidden="true">
