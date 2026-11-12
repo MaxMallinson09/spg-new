@@ -18,6 +18,7 @@ import type { Config, Context } from '@netlify/edge-functions'
 const SESSION_COOKIE = 'pb_session'
 const VERIFIER_COOKIE = 'pb_verifier'
 const STATE_COOKIE = 'pb_state'
+const NONCE_COOKIE = 'pb_nonce'
 const RETURN_COOKIE = 'pb_return'
 
 const LOGIN_PATH = '/auth/login'
@@ -128,11 +129,12 @@ type Claims = {
   iat?: number
   nbf?: number
   azp?: string
+  nonce?: string
   iss?: string
   aud?: string | string[]
 }
 
-async function verifyIdToken(token: string, domain: string, clientId: string): Promise<Claims | null> {
+async function verifyIdToken(token: string, domain: string, clientId: string, expectedNonce?: string): Promise<Claims | null> {
   try {
     if (typeof token !== 'string' || token.length > MAX_TOKEN_LENGTH) return null
     const parts = token.split('.')
@@ -148,6 +150,8 @@ async function verifyIdToken(token: string, domain: string, clientId: string): P
     if (header.alg !== 'RS256' || typeof header.kid !== 'string' || !header.kid || header.kid.length > 256) return null
     const now = Math.floor(Date.now() / 1000)
     if (typeof claims.sub !== 'string' || !claims.sub) return null
+    if (typeof claims.nonce !== 'string' || !claims.nonce) return null
+    if (expectedNonce !== undefined && claims.nonce !== expectedNonce) return null
     if (typeof claims.exp !== 'number' || !Number.isFinite(claims.exp) || claims.exp <= now) return null
     if (typeof claims.iat !== 'number' || !Number.isFinite(claims.iat) || claims.iat > now + 300) return null
     if (claims.nbf !== undefined && (typeof claims.nbf !== 'number' || !Number.isFinite(claims.nbf) || claims.nbf > now + 300)) return null
@@ -191,7 +195,7 @@ function safeReturnPath(value: string | null | undefined, origin: string): strin
 }
 
 function clearFlowCookies(context: Context, secure: boolean) {
-  for (const name of [VERIFIER_COOKIE, STATE_COOKIE, RETURN_COOKIE]) {
+  for (const name of [VERIFIER_COOKIE, STATE_COOKIE, NONCE_COOKIE, RETURN_COOKIE]) {
     context.cookies.set({ name, value: '', path: '/', httpOnly: true, secure, sameSite: 'Lax', maxAge: 0 })
   }
 }
@@ -214,6 +218,24 @@ function plainResponse(message: string, status: number, headers?: Record<string,
       ...headers,
     },
   })
+}
+
+async function secureProtectedResponse(response: Response): Promise<Response> {
+  const nonce = randomToken(16)
+  const contentType = response.headers.get('content-type') ?? ''
+  if (contentType.includes('text/html')) {
+    const body = await response.text()
+    response = new Response(body.replace(/<script(?=[\s>])/gi, `<script nonce="${nonce}"`), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    })
+  }
+  response.headers.set(
+    'content-security-policy',
+    `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'`,
+  )
+  return response
 }
 
 export default async (request: Request, context: Context) => {
@@ -241,11 +263,13 @@ export default async (request: Request, context: Context) => {
   if (url.pathname === LOGIN_PATH) {
     const verifier = randomToken()
     const state = randomToken(16)
+    const nonce = randomToken(16)
     const returnTo = safeReturnPath(url.searchParams.get('returnTo'), url.origin)
 
     const cookieOptions = { path: '/', httpOnly: true, secure, sameSite: 'Lax' as const, maxAge: FLOW_COOKIE_MAX_AGE }
     context.cookies.set({ name: VERIFIER_COOKIE, value: verifier, ...cookieOptions })
     context.cookies.set({ name: STATE_COOKIE, value: state, ...cookieOptions })
+    context.cookies.set({ name: NONCE_COOKIE, value: nonce, ...cookieOptions })
     context.cookies.set({ name: RETURN_COOKIE, value: returnTo, ...cookieOptions })
 
     const authorize = new URL(`https://${domain}/authorize`)
@@ -254,6 +278,7 @@ export default async (request: Request, context: Context) => {
     authorize.searchParams.set('redirect_uri', redirectUri)
     authorize.searchParams.set('scope', 'openid profile email')
     authorize.searchParams.set('state', state)
+    authorize.searchParams.set('nonce', nonce)
     authorize.searchParams.set('code_challenge', await pkceChallenge(verifier))
     authorize.searchParams.set('code_challenge_method', 'S256')
     return redirect(authorize.toString())
@@ -271,7 +296,8 @@ export default async (request: Request, context: Context) => {
 
     const code = url.searchParams.get('code')
     const verifier = context.cookies.get(VERIFIER_COOKIE)
-    if (!code || !verifier || url.searchParams.has('error')) {
+    const nonce = context.cookies.get(NONCE_COOKIE)
+    if (!code || !verifier || !nonce || url.searchParams.has('error')) {
       clearFlowCookies(context, secure)
       return plainResponse('Sign-in failed. Return to the home page to try again.', 401)
     }
@@ -302,7 +328,7 @@ export default async (request: Request, context: Context) => {
       return plainResponse('Sign-in failed: could not exchange the authorization code.', 401)
     }
 
-    const claims = await verifyIdToken(idToken, domain, clientId)
+    const claims = await verifyIdToken(idToken, domain, clientId, nonce)
     if (!claims) {
       clearFlowCookies(context, secure)
       return plainResponse('Sign-in failed: the identity token did not verify.', 401)
@@ -383,7 +409,7 @@ export default async (request: Request, context: Context) => {
 
   // Recheck authentication on subsequent visits instead of allowing a cached
   // protected document or asset to be reused after logout.
-  const response = await context.next()
+  const response = await secureProtectedResponse(await context.next())
   response.headers.set('cache-control', 'private, no-store')
   response.headers.set('cdn-cache-control', 'no-store')
   response.headers.set('netlify-cdn-cache-control', 'no-store')
