@@ -26,7 +26,7 @@ export default function PasswordGenerator() {
   const [copyState, setCopyState] = useState<CopyState>('idle')
   const copyAttempt = useRef(0)
   const [spin, setSpin] = useState(false)
-  const [advanced, setAdvanced] = useState(false)
+  const [advanced, setAdvanced] = useState(true)
   const [showReadingGuide, setShowReadingGuide] = useState(false)
   const [length, setLength] = useState(ADVANCED_DEFAULT_LENGTH)
   const [now, setNow] = useState<Date | null>(null)

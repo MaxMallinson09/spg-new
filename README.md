@@ -1,6 +1,6 @@
 # Simple Password Generator
 
-A single-page password generator that produces simple, memorable, phone-friendly passwords. Simple mode combines two distinct words, one three-digit number and one special character, giving 10–14 characters in total.
+A single-page password generator that produces secure passwords by default, with a simple mode for memorable, phone-friendly passwords. Simple mode combines two distinct words, one three-digit number and one special character, giving 10–14 characters in total.
 
 ## How it works
 
@@ -44,7 +44,7 @@ Version 3.3.1 updates vulnerable dependencies and hardens the Auth0 gate. See [t
 
 Run `pnpm test`, `pnpm build`, `pnpm exec tsc --noEmit` and `pnpm audit` when changing authentication or dependencies. Build before type-checking a fresh checkout so TanStack generates its route types. Install from the committed lockfile with `pnpm install --frozen-lockfile`.
 
-Simple mode has only about 25.55 bits of entropy and is unsuitable for passwords that must resist offline guessing. For long-term credentials, use Advanced mode at its 16-character default or longer. Temporary helpdesk passwords need short expiry, a required change at first sign-in and account-level protections enforced by the system receiving them; this generator cannot enforce those policies.
+Simple mode has only about 25.55 bits of entropy and is unsuitable for passwords that must resist offline guessing. Advanced mode is selected by default and should be used for long-term credentials at its 16-character default or longer. Temporary helpdesk passwords need short expiry, a required change at first sign-in and account-level protections enforced by the system receiving them; this generator cannot enforce those policies.
 
 ## Christmas theme
 
