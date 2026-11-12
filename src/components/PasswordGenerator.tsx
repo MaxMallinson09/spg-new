@@ -23,6 +23,7 @@ export default function PasswordGenerator() {
   // otherwise render two different passwords and fail hydration.
   const [generated, setGenerated] = useState<GeneratedPassword | null>(null)
   const password = generated?.password ?? null
+  const [generationFailed, setGenerationFailed] = useState(false)
   const [copyState, setCopyState] = useState<CopyState>('idle')
   const copyAttempt = useRef(0)
   const [spin, setSpin] = useState(false)
@@ -34,15 +35,26 @@ export default function PasswordGenerator() {
     ? formatSimplePasswordReading(generated)
     : null
 
+  const createPassword = useCallback((): GeneratedPassword | null => {
+    try {
+      const next = advanced
+        ? { password: generateAdvancedPassword(length) }
+        : generateSimplePassword()
+      setGenerationFailed(false)
+      return next
+    } catch {
+      setGenerationFailed(true)
+      return null
+    }
+  }, [advanced, length])
+
   // Covers the first render and every later change of mode or length, so the
   // password on screen always matches the controls above it.
   useEffect(() => {
-    setGenerated(
-      advanced ? { password: generateAdvancedPassword(length) } : generateSimplePassword(),
-    )
+    setGenerated(createPassword())
     copyAttempt.current += 1
     setCopyState('idle')
-  }, [advanced, length])
+  }, [createPassword])
 
   useEffect(() => {
     setNow(new Date())
@@ -51,14 +63,14 @@ export default function PasswordGenerator() {
   }, [])
 
   const regenerate = useCallback(() => {
-    setGenerated(
-      advanced ? { password: generateAdvancedPassword(length) } : generateSimplePassword(),
-    )
+    const next = createPassword()
+    setGenerated(next)
     copyAttempt.current += 1
     setCopyState('idle')
+    if (!next) return
     setSpin(true)
     window.setTimeout(() => setSpin(false), 420)
-  }, [advanced, length])
+  }, [createPassword])
 
   const copy = useCallback(async () => {
     if (!password) return
@@ -179,14 +191,24 @@ export default function PasswordGenerator() {
               generated; the meta line below already says so in words. */}
           <PasswordText password={password} advanced={advanced} parts={generated?.parts} />
           <span className="pw-display__meta">
-            {password ? `${password.length} characters` : 'Picking your words…'}
+            {password
+              ? `${password.length} characters`
+              : generationFailed
+                ? 'Password unavailable'
+                : 'Picking your words…'}
           </span>
-          {password && (
+          {generationFailed ? (
             <span className="pw-display__hint">
-              {advanced
-                ? 'Case-sensitive · no spaces'
-                : 'Only the first letter is a capital · no spaces'}
+              Secure random generation is unavailable in this browser.
             </span>
+          ) : (
+            password && (
+              <span className="pw-display__hint">
+                {advanced
+                  ? 'Case-sensitive · no spaces'
+                  : 'Only the first letter is a capital · no spaces'}
+              </span>
+            )
           )}
           {readingGuide && (
             <div className="pw-display__reading">

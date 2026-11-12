@@ -114,3 +114,17 @@ test('invalid advanced lengths cannot silently produce four-character passwords'
     for (const pattern of [/[A-Z]/, /[a-z]/, /[0-9]/, /[!*?]/]) assert.match(password, pattern)
   }
 })
+
+test('generation stops safely when crypto.getRandomValues is unavailable or throws', () => {
+  for (const broken of [
+    null,
+    {},
+    { getRandomValues: 'not-a-function' },
+    { getRandomValues() { throw new Error('rng failure') } },
+  ]) {
+    const generator = loadGenerator(broken)
+    assert.throws(() => generator.generateSimplePassword(), /Secure random number generation is unavailable|rng failure/)
+    assert.throws(() => generator.generatePassword(), /Secure random number generation is unavailable|rng failure/)
+    assert.throws(() => generator.generateAdvancedPassword(16), /Secure random number generation is unavailable|rng failure/)
+  }
+})

@@ -254,3 +254,24 @@ test('token exchange failures clear the login flow without creating a session', 
     assert.equal(ctx.values.get('pb_verifier'), '')
   }
 })
+
+test('profile endpoint only exposes https avatar URLs', async () => {
+  const auth = loadAuth()
+  for (const badPicture of [
+    'http://insecure.example/avatar.png',
+    'javascript:alert(1)',
+    'data:image/svg+xml,<svg/>',
+    '//attacker.example/a.png',
+    'not a url',
+  ]) {
+    const session = await token({ ...claims(), picture: badPicture })
+    const response = await auth(request('/auth/me'), context({ pb_session: session }))
+    assert.equal(response.status, 200)
+    const body = await response.json()
+    assert.equal(body.picture, null, badPicture)
+  }
+  const validSession = await token({ ...claims(), picture: 'https://cdn.auth0.example/avatar.png' })
+  const validResponse = await auth(request('/auth/me'), context({ pb_session: validSession }))
+  assert.equal(validResponse.status, 200)
+  assert.equal((await validResponse.json()).picture, 'https://cdn.auth0.example/avatar.png')
+})
