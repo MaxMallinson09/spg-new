@@ -190,9 +190,9 @@ test('logout rejects navigations and cross-origin posts and clears only the same
 
   const ctx = context({ pb_session: session })
   const response = await auth(request('/auth/logout', { method: 'POST', headers: { origin } }), ctx)
-  assert.equal(response.status, 200)
+  assert.equal(response.status, 302)
   assert.equal(response.headers.get('cache-control'), 'no-store')
-  const target = new URL(await response.text())
+  const target = new URL(response.headers.get('location'))
   assert.equal(target.origin, `https://${domain}`)
   assert.equal(target.pathname, '/v2/logout')
   assert.equal(target.searchParams.get('returnTo'), origin)
